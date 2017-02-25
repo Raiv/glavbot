@@ -1,18 +1,22 @@
 #include "gvb-camera.h"
 #include "gvb-error.h"
 #include "gvb-log.h"
+// glib dependencies
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <gio/gio.h>
+// system dependencies
+#define _GNU_SOURCE
 #include <linux/videodev2.h>
 #include <fcntl.h>
-#include <string.h>
 #include <errno.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+// standard libraries
+#include <string.h>
 #include <math.h>
 
-#define MAX_SAMPLES_CNT 1000
+#define MAX_SAMPLES_CNT 100000
 
 #ifndef V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER
 #define V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER (V4L2_CID_MPEG_BASE+226)
@@ -39,37 +43,37 @@ typedef struct {
 
 typedef struct {
     GvbCameraStatistics  stats_pub;
-    GRecMutex            lock;
-    GQueue              *samples;
-    gint64               start_time;   // изначальное время начала семплирования
-    gint64               wrap_time;  // время последнего сворачания статистики
+    GRecMutex            lock;                      // блокировка структуры GvbStatsPriv
+    GQueue              *samples;                   // семплы
+    gint64               start_time;                // изначальное время начала семплирования
+    gint64               wrap_time;                 // время последнего сворачания статистики
 } GvbStatsPriv;
 
 struct _GvbCameraPrivate {
-    GRecMutex            lock;
-    GvbCameraState       state;
+    GRecMutex            lock;                      // блокировка private-структуры
+    GvbCameraState       state;                     // состояние камеры
     // device control
-    gchar               *dev_path;
-    gint                 dev_fd;
+    gchar               *dev_path;                  // системный пусть v4l2 устройства
+    gint                 dev_fd;                    // файловый дескриптор v4l2 устройства
     // capture control
-    guint32              width;
-    guint32              height;
-    guint32              fps;
-    CaptureBuffer       *capt_bufs;
-    guint32              capt_bufs_count;
-    GThread             *capt_mill_thread;
-    volatile gint        capt_mill_stop;
-    GvbCameraBufferCbFn  capt_mill_cb;
-    gpointer             capt_mill_cb_data;
-    GDestroyNotify       capt_mill_cb_destroy_cb;
+    guint32              width;                     // ширина картинки в пикселях
+    guint32              height;                    // высота картинки в пикселях
+    guint32              fps;                       // frame per second видео
+    CaptureBuffer       *capt_bufs;                 // массив буферов, которые используется для получения данных из устройства
+    guint32              capt_bufs_count;           // количество буферов выделенных по указателю capt_bufs
+    GThread             *capt_mill_thread;          // указатель на поток, который обрабатывает снимаемые с камеры данные
+    volatile gint        capt_mill_stop;            // флаг, при установке которого остановливается поток capt_mill_thread
+    GvbCameraBufferCbFn  capt_mill_cb;              // функция, вызываемая для обработки данных камеры
+    gpointer             capt_mill_cb_data;         // userdata для capt_mill_cb
+    GDestroyNotify       capt_mill_cb_destroy_cb;   // функция, которая будет вызвана в момент финализации объекта GvbCamera
     // output
-    gchar               *out_path;
-    gint                 out_fd;
+    gchar               *out_path;                  // выходной файл, в который будут записываться снимаемые с устройства данные
+    gint                 out_fd;                    // дескриптор выходного файла
     // statistics
-    GvbStatsPriv         stats;
-    gboolean             streaming_on;
-    GMutex               streaming_mutex;
-    GCond                streaming_cond;
+    GvbStatsPriv         stats;                     // поддержка обработки статистики
+    gboolean             streaming_on;              // флаг активности стримминга
+    GMutex               streaming_mutex;           // блокировка для установки флага streaming_on и события streaming_cond
+    GCond                streaming_cond;            // событие изменения статуса стримминга
 };
 
 G_DEFINE_QUARK(gvb-camera-error-quark,gvb_camera_error);
@@ -178,8 +182,12 @@ gvb_stat_sample_free(GvbStatsSample *sample)
 }
 
 gboolean
-gvb_camera_isopen(GvbCamera *self)
+gvb_camera_isopen(GvbCamera *self, GError **error)
 {
+    if(!self) {
+        g_set_error_literal(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "self is null");
+        return FALSE;
+    }
     gboolean ret = FALSE;
     LOCK(self);
     if(P(self)->dev_fd<0) {
@@ -211,10 +219,16 @@ gvb_camera_new(GvbCameraOptions *options)
 }
 
 gboolean
-gvb_camera_get_dev_path(GvbCamera *self, gchar **path)
+gvb_camera_get_dev_path(GvbCamera *self, gchar **path, GError **error)
 {
-    g_return_val_if_fail(self!=NULL,FALSE);
-    g_return_val_if_fail(path!=NULL,FALSE);
+    if(!self) {
+        g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "self is null");
+        return FALSE;
+    }
+    if(!path) {
+        g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "path is null");
+        return FALSE;
+    }
     LOCK(self);
     *path = g_strdup(P(self)->dev_path);
     UNLOCK(self);
@@ -222,10 +236,16 @@ gvb_camera_get_dev_path(GvbCamera *self, gchar **path)
 }
 
 gboolean
-gvb_camera_get_state(GvbCamera *self, GvbCameraState *state)
+gvb_camera_get_state(GvbCamera *self, GvbCameraState *state, GError **error)
 {
-    g_return_val_if_fail(self!=NULL,FALSE);
-    g_return_val_if_fail(state!=NULL,FALSE);
+    if(!self) {
+        g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "self is null");
+        return FALSE;
+    }
+    if(!state) {
+        g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "state is null");
+        return FALSE;
+    }
     LOCK(self);
     *state = P(self)->state;
     UNLOCK(self);
@@ -233,9 +253,12 @@ gvb_camera_get_state(GvbCamera *self, GvbCameraState *state)
 }
 
 gboolean
-gvb_camera_set_buffer_callback(GvbCamera *self, GvbCameraBufferCbFn callback, gpointer user_data, GDestroyNotify destroy_cb)
+gvb_camera_set_buffer_callback(GvbCamera *self, GvbCameraBufferCbFn callback, gpointer user_data, GDestroyNotify destroy_cb, GError **error)
 {
-    g_return_val_if_fail(self!=NULL,FALSE);
+    if(!self) {
+        g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "self is null");
+        return FALSE;
+    }
     LOCK(self);
     P(self)->capt_mill_cb = callback;
     P(self)->capt_mill_cb_data = user_data;
@@ -257,59 +280,6 @@ validate_set_and_get_args(GvbCamera *self, GError **error, gpointer value)
     }
     return TRUE;
 }
-
-//gboolean
-//gvb_camera_set_control2(GvbCamera *self, GError **error, GvbCameraControl control, gfloat *value)
-//{
-//    if(!validate_set_and_get_args(self, error, value)) {
-//        return FALSE;
-//    }
-//    switch(control) {
-////        case GVB_CAMERA_CONTROL_FRAME_RATE: {
-////            struct v4l2_streamparm parm;
-////            parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-////            // TODO: плавающая точка...
-////            parm.parm.capture.timeperframe.denominator = (guint32)*value;
-////            parm.parm.capture.timeperframe.numerator = 1;
-////            if(GVB_CAMERA_IOCTL(self, VIDIOC_S_PARM, &parm)<0) {
-////                SET_IOCTL_ERROR(error, "VIDIOC_S_PARM");
-////                return FALSE;
-////            }
-////        }
-////        break;
-//        default:
-//            g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "Unsupported control: [%d]", control);
-//            return FALSE;
-//    }
-//    return TRUE;
-//}
-//
-//gboolean
-//gvb_camera_get_control2(GvbCamera *self, GError **error, GvbCameraControl control, gfloat *value)
-//{
-//    if(!validate_set_and_get_args(self, error, value)) {
-//        return FALSE;
-//    }
-//    switch(control) {
-////        case GVB_CAMERA_CONTROL_FRAME_RATE: {
-////            struct v4l2_streamparm parm;
-////            parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-////            if(GVB_CAMERA_IOCTL(self, VIDIOC_G_PARM, &parm)<0) {
-////                SET_IOCTL_ERROR(error, "VIDIOC_G_PARM");
-////                return FALSE;
-////            }
-////            GvbCameraFrameRate *frame_rate = (GvbCameraFrameRate*)value;
-////            // frame_rate = 1/time_per_frame
-////            *value = ((gdouble)parm.parm.capture.timeperframe.denominator) 
-////                        / ((gdouble)parm.parm.capture.timeperframe.numerator);
-////        }
-////        break;
-//        default:
-//            g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "Unsupported control: [%d]", control);
-//            return FALSE;
-//    }
-//    return TRUE;
-//}
 
 gboolean
 gvb_camera_set_control(GvbCamera *self, GError **error, GvbCameraControl control, gint32 *value)
@@ -574,6 +544,16 @@ gvb_camera_default_control(GvbCamera *self, GError **error)
     
     return TRUE;
 }
+/*
+ * TODO: сделать одну общую функцию с параметром - временной интервал. Если данных
+ * для указанного временного интервала не достаточно, то выдаём ошибку (см. константу MAX_SAMPLES_CNT)
+ * тогда не будет этого трэша с типом GvbCameraStatistics
+gboolean
+gvb_camera_get_statistics2(GvbCamera *self, GError **error, gint timeframe, gdouble *bps)
+{
+    
+}
+*/
 
 gboolean
 gvb_camera_get_statistics(GvbCamera *self, GError **error, GvbCameraStatistics *statistics)
@@ -584,13 +564,15 @@ gvb_camera_get_statistics(GvbCamera *self, GError **error, GvbCameraStatistics *
     STAT_LOCK(self);
     
     // static is safe with STAT_LOCK
-    static guint32 bytes2, bytes5, bytes10, bytes20, bytes60;
-    static gint64 edge2, edge5, edge10, edge20, edge60;
+    static guint32 bytes0_5, bytes2, bytes5, bytes10, bytes20, bytes60;
+    static gint64 edge0_5, edge2, edge5, edge10, edge20, edge60;
     static GvbStatsSample *sample;
     static gint64 curtime;
     static GvbStatsPriv *stats;
     static guint num_samples;
     static gdouble delta_t0;
+    static gdouble delta_t0_0_5;
+    static gdouble delta_t1_0_5;
     static gdouble delta_t0_2;
     static gdouble delta_t1_2;
     static gdouble delta_t0_5;
@@ -608,8 +590,8 @@ gvb_camera_get_statistics(GvbCamera *self, GError **error, GvbCameraStatistics *
     }
     
     curtime = g_get_monotonic_time();
-    bytes2 = bytes5 = bytes10 = bytes20 = bytes60 = 0;
-    edge2 = edge5 = edge10 = edge20 = edge60 = curtime;
+    bytes0_5 = bytes2 = bytes5 = bytes10 = bytes20 = bytes60 = 0;
+    edge0_5 = edge2 = edge5 = edge10 = edge20 = edge60 = curtime;
     sample = NULL;
     
     guint idx = 0;
@@ -625,11 +607,15 @@ gvb_camera_get_statistics(GvbCamera *self, GError **error, GvbCameraStatistics *
         else {
             if(idx==1) {
                 stats->stats_pub.bytes_per_second_avg0
-                    = bytes2 / (edge2 - sample->sample_time);
+                    = bytes0_5 / (edge0_5 - sample->sample_time);
             }
         }
         idx++;
         // другие статистики
+        if(curtime - sample->sample_time <= 500*G_TIME_SPAN_MILLISECOND) {
+            bytes0_5 += sample->buf_size;
+            edge0_5 = sample->sample_time;
+        }
         if(curtime - sample->sample_time <= 2*G_TIME_SPAN_SECOND) {
             bytes2 += sample->buf_size;
             edge2 = sample->sample_time;
@@ -657,6 +643,8 @@ gvb_camera_get_statistics(GvbCamera *self, GError **error, GvbCameraStatistics *
     delta_t0 = stats->wrap_time - stats->start_time;
     delta_t0 = ( delta_t0==0 ? curtime-stats->start_time : delta_t0 );
     //
+    delta_t0_0_5  = (delta_t0 > 500*G_TIME_SPAN_MILLISECOND ? 500*G_TIME_SPAN_MILLISECOND : delta_t0);
+    delta_t1_0_5  = curtime - edge0_5;
     delta_t0_2  = (delta_t0 > 2*G_TIME_SPAN_SECOND ? 2*G_TIME_SPAN_SECOND : delta_t0);
     delta_t1_2  = curtime - edge2;
     delta_t0_5  = (delta_t0 > 5*G_TIME_SPAN_SECOND ? 5*G_TIME_SPAN_SECOND : delta_t0);
@@ -668,6 +656,9 @@ gvb_camera_get_statistics(GvbCamera *self, GError **error, GvbCameraStatistics *
     delta_t0_60 = (delta_t0 > 60*G_TIME_SPAN_SECOND ? 60*G_TIME_SPAN_SECOND : delta_t0);
     delta_t1_60 = curtime - edge60;
     
+    stats->stats_pub.bytes_per_second_avg0_5
+        = stats->stats_pub.bytes_per_second_avg0_5 * delta_t0_0_5 / ( delta_t0_0_5 + delta_t1_0_5 )
+            + G_TIME_SPAN_SECOND * bytes0_5 / ( delta_t0_0_5 + delta_t1_0_5 );
     stats->stats_pub.bytes_per_second_avg2
         = stats->stats_pub.bytes_per_second_avg2 * delta_t0_2 / ( delta_t0_2 + delta_t1_2 )
             + G_TIME_SPAN_SECOND * bytes2 / ( delta_t0_2 + delta_t1_2 );
@@ -686,6 +677,7 @@ gvb_camera_get_statistics(GvbCamera *self, GError **error, GvbCameraStatistics *
     
     stats->stats_pub.analyzed_us = curtime - stats->wrap_time;
     stats->stats_pub.analyzed_samples = num_samples;
+    stats->stats_pub.start_time = stats->start_time;
     stats->wrap_time = curtime;
     
 ret_success:
@@ -1037,6 +1029,7 @@ gvb_camera_turn_streaming_on(GvbCamera *self, GError **error)
     P(self)->streaming_on = TRUE;
     g_cond_signal(&P(self)->streaming_cond);
     g_mutex_unlock(&P(self)->streaming_mutex);
+
     return TRUE;
 }
 
@@ -1050,7 +1043,6 @@ gvb_camera_turn_streaming_off(GvbCamera *self, GError **error)
     gvb_log_message(__func__);
     
     g_mutex_lock(&P(self)->streaming_mutex);
-    
     enum v4l2_buf_type v4l2_buf_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if(GVB_CAMERA_IOCTL(self, VIDIOC_STREAMOFF, &v4l2_buf_type)<0) {
         SET_IOCTL_ERROR(error, "VIDIOC_STREAMOFF");
@@ -1058,16 +1050,15 @@ gvb_camera_turn_streaming_off(GvbCamera *self, GError **error)
     }
     P(self)->streaming_on = FALSE;
     g_cond_signal(&P(self)->streaming_cond);
-    
     g_mutex_unlock(&P(self)->streaming_mutex);
     return TRUE;
 }
 
 gboolean
-gvb_camera_is_streaming_on(GvbCamera *self)
+gvb_camera_is_streaming_on(GvbCamera *self, GError **error)
 {
     if(!self) {
-        gvb_log_critical("self is null");
+        g_set_error_literal(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "self is null");
         return FALSE;
     }
     gboolean retval = FALSE;
@@ -1279,16 +1270,4 @@ gvb_camera_capt_mill_fn(gpointer user_data)
 #undef CHECK_EXIT
 
     return NULL;
-}
-
-// для тестирования в gvb-misc.c
-
-void
-gvb_camera_test(GvbCamera *self)
-{
-    g_return_if_fail(self);
-    
-    // вытянуть какие есть настройки у камеры
-    
-    
 }

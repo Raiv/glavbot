@@ -823,7 +823,7 @@ gst_byte_reader_dup_data (GstByteReader * reader, guint size, guint8 ** val)
 
 /* Special optimized scan for mask 0xffffff00 and pattern 0x00000100 */
 static inline gint
-_scan_for_start_code (const guint8 * data, guint offset, guint size)
+_scan_for_start_code (const guint8 * data, guint size)
 {
   guint8 *pdata = (guint8 *) data;
   guint8 *pend = (guint8 *) (data + size - 4);
@@ -836,7 +836,7 @@ _scan_for_start_code (const guint8 * data, guint offset, guint size)
     } else if (pdata[0] || pdata[2] != 1) {
       pdata++;
     } else {
-      return (pdata - data + offset);
+      return (pdata - data);
     }
   }
 
@@ -853,8 +853,7 @@ _masked_scan_uint32_peek (const GstByteReader * reader,
   guint i;
 
   g_return_val_if_fail (size > 0, -1);
-  g_return_val_if_fail ((guint64) offset + size <= reader->size - reader->byte,
-      -1);
+  g_return_val_if_fail ((guint64) offset + size <= reader->size - reader->byte, -1);
 
   /* we can't find the pattern with less than 4 bytes */
   if (G_UNLIKELY (size < 4))
@@ -864,10 +863,13 @@ _masked_scan_uint32_peek (const GstByteReader * reader,
 
   /* Handle special case found in MPEG and H264 */
   if ((pattern == 0x00000100) && (mask == 0xffffff00)) {
-    guint ret = _scan_for_start_code (data, offset, size);
-    if (G_UNLIKELY (value))
+    //BUG: seems bug. We already have accounted offset in *data pointer. If we pass offset again we may 
+    guint ret = _scan_for_start_code (data, size);
+    if (ret == -1)
+      return ret;
+    if (value != NULL)
       *value = (1 << 8) | data[ret + 3];
-    return ret;
+    return ret + offset;
   }
 
   /* set the state to something that does not match */

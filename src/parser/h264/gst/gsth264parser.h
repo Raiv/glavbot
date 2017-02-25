@@ -35,7 +35,6 @@
 //#warning "You can define GST_USE_UNSTABLE_API to avoid this warning."
 //#endif
 
-//#include <gst/gst.h>
 #include "glib.h"
 
 G_BEGIN_DECLS
@@ -195,7 +194,8 @@ typedef enum
   GST_H264_PARSER_BROKEN_LINK,
   GST_H264_PARSER_ERROR,
   GST_H264_PARSER_NO_NAL,
-  GST_H264_PARSER_NO_NAL_END
+  GST_H264_PARSER_NO_NAL_END,
+  GST_H264_PARSER_FEW_DATA
 } GstH264ParserResult;
 
 /**

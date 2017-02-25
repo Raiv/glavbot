@@ -37,8 +37,8 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/src/camera/gvb-camera-opt.o \
 	${OBJECTDIR}/src/camera/gvb-camera.o \
-	${OBJECTDIR}/src/camera/gvb-opt.o \
 	${OBJECTDIR}/src/common/gvb-error.o \
+	${OBJECTDIR}/src/common/gvb-opt.o \
 	${OBJECTDIR}/src/compat/compat.o \
 	${OBJECTDIR}/src/main.o \
 	${OBJECTDIR}/src/network/gvb-client-opt.o \
@@ -52,6 +52,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/parser/h264/gst/gsth264parser.o \
 	${OBJECTDIR}/src/parser/h264/gst/nalutils.o \
 	${OBJECTDIR}/src/tests/gvb-client2server.o \
+	${OBJECTDIR}/src/tests/gvb-h264-parser.o \
 	${OBJECTDIR}/src/tests/gvb-misc.o \
 	${OBJECTDIR}/src/tests/gvb-server2client.o \
 	${OBJECTDIR}/src/ui/gvb-ui.o
@@ -79,107 +80,112 @@ LDLIBSOPTIONS=-L3rdparty/glib-2.0/2.48.1/armv71/libs -ldl -lresolv -lz -lrt -lm 
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/glavbot: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	gcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/glavbot ${OBJECTFILES} ${LDLIBSOPTIONS}
+	gcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/glavbot ${OBJECTFILES} ${LDLIBSOPTIONS} -Wl,-v
 
-${OBJECTDIR}/src/camera/gvb-camera-opt.o: nbproject/Makefile-${CND_CONF}.mk src/camera/gvb-camera-opt.c 
+${OBJECTDIR}/src/camera/gvb-camera-opt.o: src/camera/gvb-camera-opt.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/camera
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/camera/gvb-camera-opt.o src/camera/gvb-camera-opt.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/camera/gvb-camera-opt.o src/camera/gvb-camera-opt.c
 
-${OBJECTDIR}/src/camera/gvb-camera.o: nbproject/Makefile-${CND_CONF}.mk src/camera/gvb-camera.c 
+${OBJECTDIR}/src/camera/gvb-camera.o: src/camera/gvb-camera.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/camera
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/camera/gvb-camera.o src/camera/gvb-camera.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/camera/gvb-camera.o src/camera/gvb-camera.c
 
-${OBJECTDIR}/src/camera/gvb-opt.o: nbproject/Makefile-${CND_CONF}.mk src/camera/gvb-opt.c 
-	${MKDIR} -p ${OBJECTDIR}/src/camera
-	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/camera/gvb-opt.o src/camera/gvb-opt.c
-
-${OBJECTDIR}/src/common/gvb-error.o: nbproject/Makefile-${CND_CONF}.mk src/common/gvb-error.c 
+${OBJECTDIR}/src/common/gvb-error.o: src/common/gvb-error.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/common
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/common/gvb-error.o src/common/gvb-error.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/common/gvb-error.o src/common/gvb-error.c
 
-${OBJECTDIR}/src/compat/compat.o: nbproject/Makefile-${CND_CONF}.mk src/compat/compat.c 
+${OBJECTDIR}/src/common/gvb-opt.o: src/common/gvb-opt.c nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/src/common
+	${RM} "$@.d"
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/common/gvb-opt.o src/common/gvb-opt.c
+
+${OBJECTDIR}/src/compat/compat.o: src/compat/compat.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/compat
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/compat/compat.o src/compat/compat.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/compat/compat.o src/compat/compat.c
 
-${OBJECTDIR}/src/main.o: nbproject/Makefile-${CND_CONF}.mk src/main.c 
+${OBJECTDIR}/src/main.o: src/main.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main.o src/main.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main.o src/main.c
 
-${OBJECTDIR}/src/network/gvb-client-opt.o: nbproject/Makefile-${CND_CONF}.mk src/network/gvb-client-opt.c 
+${OBJECTDIR}/src/network/gvb-client-opt.o: src/network/gvb-client-opt.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/network
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-client-opt.o src/network/gvb-client-opt.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-client-opt.o src/network/gvb-client-opt.c
 
-${OBJECTDIR}/src/network/gvb-client.o: nbproject/Makefile-${CND_CONF}.mk src/network/gvb-client.c 
+${OBJECTDIR}/src/network/gvb-client.o: src/network/gvb-client.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/network
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-client.o src/network/gvb-client.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-client.o src/network/gvb-client.c
 
-${OBJECTDIR}/src/network/gvb-network-opt.o: nbproject/Makefile-${CND_CONF}.mk src/network/gvb-network-opt.c 
+${OBJECTDIR}/src/network/gvb-network-opt.o: src/network/gvb-network-opt.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/network
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-network-opt.o src/network/gvb-network-opt.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-network-opt.o src/network/gvb-network-opt.c
 
-${OBJECTDIR}/src/network/gvb-network.o: nbproject/Makefile-${CND_CONF}.mk src/network/gvb-network.c 
+${OBJECTDIR}/src/network/gvb-network.o: src/network/gvb-network.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/network
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-network.o src/network/gvb-network.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-network.o src/network/gvb-network.c
 
-${OBJECTDIR}/src/network/gvb-server-opt.o: nbproject/Makefile-${CND_CONF}.mk src/network/gvb-server-opt.c 
+${OBJECTDIR}/src/network/gvb-server-opt.o: src/network/gvb-server-opt.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/network
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-server-opt.o src/network/gvb-server-opt.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-server-opt.o src/network/gvb-server-opt.c
 
-${OBJECTDIR}/src/network/gvb-server.o: nbproject/Makefile-${CND_CONF}.mk src/network/gvb-server.c 
+${OBJECTDIR}/src/network/gvb-server.o: src/network/gvb-server.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/network
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-server.o src/network/gvb-server.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-server.o src/network/gvb-server.c
 
-${OBJECTDIR}/src/parser/h264/gst/gstbitreader.o: nbproject/Makefile-${CND_CONF}.mk src/parser/h264/gst/gstbitreader.c 
+${OBJECTDIR}/src/parser/h264/gst/gstbitreader.o: src/parser/h264/gst/gstbitreader.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/parser/h264/gst
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/gstbitreader.o src/parser/h264/gst/gstbitreader.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/gstbitreader.o src/parser/h264/gst/gstbitreader.c
 
-${OBJECTDIR}/src/parser/h264/gst/gstbytereader.o: nbproject/Makefile-${CND_CONF}.mk src/parser/h264/gst/gstbytereader.c 
+${OBJECTDIR}/src/parser/h264/gst/gstbytereader.o: src/parser/h264/gst/gstbytereader.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/parser/h264/gst
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/gstbytereader.o src/parser/h264/gst/gstbytereader.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/gstbytereader.o src/parser/h264/gst/gstbytereader.c
 
-${OBJECTDIR}/src/parser/h264/gst/gsth264parser.o: nbproject/Makefile-${CND_CONF}.mk src/parser/h264/gst/gsth264parser.c 
+${OBJECTDIR}/src/parser/h264/gst/gsth264parser.o: src/parser/h264/gst/gsth264parser.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/parser/h264/gst
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/gsth264parser.o src/parser/h264/gst/gsth264parser.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/gsth264parser.o src/parser/h264/gst/gsth264parser.c
 
-${OBJECTDIR}/src/parser/h264/gst/nalutils.o: nbproject/Makefile-${CND_CONF}.mk src/parser/h264/gst/nalutils.c 
+${OBJECTDIR}/src/parser/h264/gst/nalutils.o: src/parser/h264/gst/nalutils.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/parser/h264/gst
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/nalutils.o src/parser/h264/gst/nalutils.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/nalutils.o src/parser/h264/gst/nalutils.c
 
-${OBJECTDIR}/src/tests/gvb-client2server.o: nbproject/Makefile-${CND_CONF}.mk src/tests/gvb-client2server.c 
+${OBJECTDIR}/src/tests/gvb-client2server.o: src/tests/gvb-client2server.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/tests
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/tests/gvb-client2server.o src/tests/gvb-client2server.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/tests/gvb-client2server.o src/tests/gvb-client2server.c
 
-${OBJECTDIR}/src/tests/gvb-misc.o: nbproject/Makefile-${CND_CONF}.mk src/tests/gvb-misc.c 
+${OBJECTDIR}/src/tests/gvb-h264-parser.o: src/tests/gvb-h264-parser.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/tests
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/tests/gvb-misc.o src/tests/gvb-misc.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/tests/gvb-h264-parser.o src/tests/gvb-h264-parser.c
 
-${OBJECTDIR}/src/tests/gvb-server2client.o: nbproject/Makefile-${CND_CONF}.mk src/tests/gvb-server2client.c 
+${OBJECTDIR}/src/tests/gvb-misc.o: src/tests/gvb-misc.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/tests
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/tests/gvb-server2client.o src/tests/gvb-server2client.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/tests/gvb-misc.o src/tests/gvb-misc.c
 
-${OBJECTDIR}/src/ui/gvb-ui.o: nbproject/Makefile-${CND_CONF}.mk src/ui/gvb-ui.c 
+${OBJECTDIR}/src/tests/gvb-server2client.o: src/tests/gvb-server2client.c nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/src/tests
+	${RM} "$@.d"
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/tests/gvb-server2client.o src/tests/gvb-server2client.c
+
+${OBJECTDIR}/src/ui/gvb-ui.o: src/ui/gvb-ui.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/ui
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ui/gvb-ui.o src/ui/gvb-ui.c
+	$(COMPILE.c) -g -Wall -I3rdparty/glib-2.0/2.48.1/armv71/include -Isrc/common -Isrc/camera -Isrc/network -Isrc/ui -Isrc/tests -Isrc/parser -Isrc/parser/h264/gst `pkg-config --cflags ncurses` `pkg-config --cflags libffi` `pkg-config --cflags libpcre`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ui/gvb-ui.o src/ui/gvb-ui.c
 
 # Subprojects
 .build-subprojects:
@@ -187,7 +193,6 @@ ${OBJECTDIR}/src/ui/gvb-ui.o: nbproject/Makefile-${CND_CONF}.mk src/ui/gvb-ui.c
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/glavbot
 
 # Subprojects
 .clean-subprojects:

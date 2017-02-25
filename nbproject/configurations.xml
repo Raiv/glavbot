@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
       <logicalFolder name="camera" displayName="camera" projectFiles="true">
-        <itemPath>C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera-opt.h</itemPath>
-        <itemPath>C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera.h</itemPath>
+        <itemPath>src/camera/gvb-camera-opt.h</itemPath>
+        <itemPath>src/camera/gvb-camera.h</itemPath>
       </logicalFolder>
       <logicalFolder name="common" displayName="common" projectFiles="true">
-        <itemPath>C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-error.h</itemPath>
-        <itemPath>C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-log.h</itemPath>
-        <itemPath>src/camera/gvb-opt.h</itemPath>
+        <itemPath>src/common/gvb-error.h</itemPath>
+        <itemPath>src/common/gvb-log.h</itemPath>
+        <itemPath>src/common/gvb-opt.h</itemPath>
       </logicalFolder>
       <logicalFolder name="network" displayName="network" projectFiles="true">
         <itemPath>src/network/gvb-client-opt.h</itemPath>
-        <itemPath>C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-client.h</itemPath>
+        <itemPath>src/network/gvb-client.h</itemPath>
         <itemPath>src/network/gvb-network-opt.h</itemPath>
         <itemPath>src/network/gvb-network.h</itemPath>
         <itemPath>src/network/gvb-server-opt.h</itemPath>
-        <itemPath>C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-server.h</itemPath>
+        <itemPath>src/network/gvb-server.h</itemPath>
       </logicalFolder>
       <logicalFolder name="parser" displayName="parser" projectFiles="true">
         <logicalFolder name="h264" displayName="h264" projectFiles="true">
@@ -37,7 +37,7 @@
         <itemPath>src/tests/gvb-tests.h</itemPath>
       </logicalFolder>
       <logicalFolder name="ui" displayName="ui" projectFiles="true">
-        <itemPath>C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/ui/gvb-ui.h</itemPath>
+        <itemPath>src/ui/gvb-ui.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -53,7 +53,7 @@
       </logicalFolder>
       <logicalFolder name="common" displayName="common" projectFiles="true">
         <itemPath>src/common/gvb-error.c</itemPath>
-        <itemPath>src/camera/gvb-opt.c</itemPath>
+        <itemPath>src/common/gvb-opt.c</itemPath>
       </logicalFolder>
       <logicalFolder name="compat" displayName="compat" projectFiles="true">
         <itemPath>src/compat/compat.c</itemPath>
@@ -72,13 +72,13 @@
             <itemPath>src/parser/h264/gst/gstbitreader.c</itemPath>
             <itemPath>src/parser/h264/gst/gstbytereader.c</itemPath>
             <itemPath>src/parser/h264/gst/gsth264parser.c</itemPath>
-            <itemPath>src/parser/h264/gst/gstutils.c</itemPath>
             <itemPath>src/parser/h264/gst/nalutils.c</itemPath>
           </logicalFolder>
         </logicalFolder>
       </logicalFolder>
       <logicalFolder name="tests" displayName="tests" projectFiles="true">
         <itemPath>src/tests/gvb-client2server.c</itemPath>
+        <itemPath>src/tests/gvb-h264-parser.c</itemPath>
         <itemPath>src/tests/gvb-misc.c</itemPath>
         <itemPath>src/tests/gvb-server2client.c</itemPath>
       </logicalFolder>
@@ -120,8 +120,12 @@
         <cTool>
           <incDir>
             <pElem>3rdparty/glib-2.0/2.48.1/include</pElem>
+            <pElem>src/camera</pElem>
+            <pElem>src/common</pElem>
+            <pElem>src/network</pElem>
+            <pElem>src/tests</pElem>
+            <pElem>src/ui</pElem>
           </incDir>
-          <warningLevel>2</warningLevel>
         </cTool>
         <linkerTool>
           <linkerAddLib>
@@ -140,50 +144,23 @@
           <commandLine>-v</commandLine>
         </linkerTool>
       </compileType>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera-opt.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-error.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-log.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-client.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-server.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/ui/gvb-ui.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="src/camera/gvb-camera-opt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/camera/gvb-camera-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/camera/gvb-camera.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="src/camera/gvb-opt.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/camera/gvb-opt.h" ex="false" tool="3" flavor2="0">
+      <item path="src/camera/gvb-camera.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/common/gvb-error.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/common/gvb-error.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/common/gvb-log.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/common/gvb-opt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/common/gvb-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/compat/compat.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -194,6 +171,8 @@
       <item path="src/network/gvb-client-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-client.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/network/gvb-client.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-network-opt.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -208,6 +187,8 @@
       <item path="src/network/gvb-server-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-server.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/network/gvb-server.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/parser/h264/gst/_gstconfig.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -235,8 +216,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="src/parser/h264/gst/gstutils.c" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="src/parser/h264/gst/gstutils.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/parser/h264/gst/nalutils.c" ex="false" tool="0" flavor2="0">
@@ -245,6 +224,8 @@
       </item>
       <item path="src/tests/gvb-client2server.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="src/tests/gvb-h264-parser.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="src/tests/gvb-misc.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/tests/gvb-server2client.c" ex="false" tool="0" flavor2="0">
@@ -252,6 +233,8 @@
       <item path="src/tests/gvb-tests.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/ui/gvb-ui.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/ui/gvb-ui.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -274,50 +257,23 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera-opt.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-error.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-log.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-client.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-server.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/ui/gvb-ui.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="src/camera/gvb-camera-opt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/camera/gvb-camera-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/camera/gvb-camera.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="src/camera/gvb-opt.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/camera/gvb-opt.h" ex="false" tool="3" flavor2="0">
+      <item path="src/camera/gvb-camera.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/common/gvb-error.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/common/gvb-error.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/common/gvb-log.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/common/gvb-opt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/common/gvb-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/compat/compat.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -328,6 +284,8 @@
       <item path="src/network/gvb-client-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-client.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/network/gvb-client.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-network-opt.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -342,6 +300,8 @@
       <item path="src/network/gvb-server-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-server.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/network/gvb-server.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/parser/h264/gst/_gstconfig.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -369,8 +329,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="src/parser/h264/gst/gstutils.c" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="src/parser/h264/gst/gstutils.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/parser/h264/gst/nalutils.c" ex="false" tool="0" flavor2="0">
@@ -379,6 +337,8 @@
       </item>
       <item path="src/tests/gvb-client2server.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="src/tests/gvb-h264-parser.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="src/tests/gvb-misc.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/tests/gvb-server2client.c" ex="false" tool="0" flavor2="0">
@@ -386,6 +346,8 @@
       <item path="src/tests/gvb-tests.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/ui/gvb-ui.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/ui/gvb-ui.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Debug-static-armv71" type="1">
@@ -405,6 +367,7 @@
             <pElem>src/ui</pElem>
             <pElem>src/tests</pElem>
             <pElem>src/parser</pElem>
+            <pElem>src/parser/h264/gst</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
         </cTool>
@@ -430,52 +393,26 @@
             <linkerOptionItem>`pkg-config --libs libpcre`</linkerOptionItem>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
           </linkerLibItems>
+          <commandLine>-Wl,-v</commandLine>
         </linkerTool>
       </compileType>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera-opt.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-error.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-log.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-client.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-server.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/ui/gvb-ui.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="src/camera/gvb-camera-opt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/camera/gvb-camera-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/camera/gvb-camera.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="src/camera/gvb-opt.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/camera/gvb-opt.h" ex="false" tool="3" flavor2="0">
+      <item path="src/camera/gvb-camera.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/common/gvb-error.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/common/gvb-error.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/common/gvb-log.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/common/gvb-opt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/common/gvb-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/compat/compat.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -486,6 +423,8 @@
       <item path="src/network/gvb-client-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-client.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/network/gvb-client.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-network-opt.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -500,6 +439,8 @@
       <item path="src/network/gvb-server-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-server.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/network/gvb-server.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/parser/h264/gst/_gstconfig.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -535,6 +476,8 @@
       </item>
       <item path="src/tests/gvb-client2server.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="src/tests/gvb-h264-parser.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="src/tests/gvb-misc.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/tests/gvb-server2client.c" ex="false" tool="0" flavor2="0">
@@ -542,6 +485,8 @@
       <item path="src/tests/gvb-tests.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/ui/gvb-ui.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/ui/gvb-ui.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Debug-static-x86_64" type="1">
@@ -585,50 +530,23 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera-opt.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-error.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-log.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-client.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-server.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/ui/gvb-ui.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="src/camera/gvb-camera-opt.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/camera/gvb-camera-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/camera/gvb-camera.c" ex="false" tool="0" flavor2="9">
       </item>
-      <item path="src/camera/gvb-opt.c" ex="false" tool="0" flavor2="9">
-      </item>
-      <item path="src/camera/gvb-opt.h" ex="false" tool="3" flavor2="0">
+      <item path="src/camera/gvb-camera.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/common/gvb-error.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/common/gvb-error.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/common/gvb-log.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/common/gvb-opt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/common/gvb-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/compat/compat.c" ex="false" tool="0" flavor2="9">
       </item>
@@ -639,6 +557,8 @@
       <item path="src/network/gvb-client-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-client.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/network/gvb-client.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-network-opt.c" ex="false" tool="0" flavor2="9">
       </item>
@@ -653,6 +573,8 @@
       <item path="src/network/gvb-server-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-server.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/network/gvb-server.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/parser/h264/gst/_gstconfig.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -680,8 +602,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="src/parser/h264/gst/gstutils.c" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="src/parser/h264/gst/gstutils.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/parser/h264/gst/nalutils.c" ex="false" tool="0" flavor2="0">
@@ -690,6 +610,8 @@
       </item>
       <item path="src/tests/gvb-client2server.c" ex="false" tool="0" flavor2="9">
       </item>
+      <item path="src/tests/gvb-h264-parser.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="src/tests/gvb-misc.c" ex="false" tool="0" flavor2="9">
       </item>
       <item path="src/tests/gvb-server2client.c" ex="false" tool="0" flavor2="9">
@@ -697,6 +619,8 @@
       <item path="src/tests/gvb-tests.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/ui/gvb-ui.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/ui/gvb-ui.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Debug-dynamic" type="1">
@@ -723,50 +647,23 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera-opt.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-error.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-log.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-client.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-server.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/ui/gvb-ui.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="src/camera/gvb-camera-opt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/camera/gvb-camera-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/camera/gvb-camera.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="src/camera/gvb-opt.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/camera/gvb-opt.h" ex="false" tool="3" flavor2="0">
+      <item path="src/camera/gvb-camera.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/common/gvb-error.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/common/gvb-error.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/common/gvb-log.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/common/gvb-opt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/common/gvb-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/compat/compat.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -777,6 +674,8 @@
       <item path="src/network/gvb-client-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-client.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/network/gvb-client.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-network-opt.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -791,6 +690,8 @@
       <item path="src/network/gvb-server-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-server.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/network/gvb-server.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/parser/h264/gst/_gstconfig.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -818,8 +719,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="src/parser/h264/gst/gstutils.c" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="src/parser/h264/gst/gstutils.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/parser/h264/gst/nalutils.c" ex="false" tool="0" flavor2="0">
@@ -828,6 +727,8 @@
       </item>
       <item path="src/tests/gvb-client2server.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="src/tests/gvb-h264-parser.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="src/tests/gvb-misc.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/tests/gvb-server2client.c" ex="false" tool="0" flavor2="0">
@@ -835,6 +736,8 @@
       <item path="src/tests/gvb-tests.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/ui/gvb-ui.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/ui/gvb-ui.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>

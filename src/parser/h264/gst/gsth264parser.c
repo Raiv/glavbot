@@ -87,14 +87,11 @@
 #include "nalutils.h"
 #include "gsth264parser.h"
 
-//#include <gst/base/gstbytereader.h>
-//#include <gst/base/gstbitreader.h>
 #include "h264/gst/gstbytereader.h"
 #include "h264/gst/gstbitreader.h"
 #include "gvb-log.h"
 #include <string.h>
 
-//GST_DEBUG_CATEGORY (h264_parser_debug);
 #define GST_CAT_DEFAULT h264_parser_debug
 
 static gboolean initialized = FALSE;
@@ -102,11 +99,6 @@ static gboolean initialized = FALSE;
     if (!initialized) {             \
         initialized = TRUE;         \
     }
-//  if (!initialized) {
-//    GST_DEBUG_CATEGORY_INIT (h264_parser_debug, "codecparsers_h264", 0,
-//        "h264 parser library");
-//    initialized = TRUE;
-//  }
 
 #define GST_DEBUG(...)    gvb_log_debug(__VA_ARGS__)
 #define GST_WARNING(...)  gvb_log_warning(__VA_ARGS__)
@@ -1264,6 +1256,56 @@ gst_h264_nal_parser_free (GstH264NalParser * nalparser)
   nalparser = NULL;
 }
 
+GstH264ParserResult
+gst_h264_parser_identify_nalu_header(
+    GstH264NalParser * nalparser
+  , const guint8 * data
+  , guint offset
+  , gsize size
+  , GstH264NalUnit * nalu
+){
+  GstH264ParserResult res;
+  gint off2;
+  
+  /*
+   * NOTE: 
+   *   источник H.264 : Advanced video coding for generic audiovisual services (https://www.itu.int/rec/T-REC-H.264-201610-I/en)
+   *   страница 329: пункт 3 говорит о том, что конец очередного NAL unit определяется
+   *      а) началом SC следующего NAL unit
+   *      б) концом потока
+   *   то есть данные из заголовка не принимают участия в разбиении bytestream на части
+   */
+
+  res = gst_h264_parser_identify_nalu_unchecked (nalparser, data, offset, size, nalu);
+
+  if (res != GST_H264_PARSER_OK || nalu->size == 1) {
+    goto beach;
+  }
+
+  off2 = scan_for_start_codes (data + nalu->offset, size - nalu->offset);
+  if (off2 < 0) {
+    GST_DEBUG ("Nal start %d, No end found", nalu->offset);
+    return GST_H264_PARSER_NO_NAL_END;
+  }
+
+  /* Mini performance improvement:
+   * We could have a way to store how many 0s were skipped to avoid
+   * parsing them again on the next NAL */
+  while (off2 > 0 && data[nalu->offset + off2 - 1] == 00) {
+    off2--;
+  }
+  
+  nalu->size = off2;
+  if (nalu->size < 2) {
+    return GST_H264_PARSER_BROKEN_DATA;
+  }
+
+  GST_DEBUG ("Complete nal found. Off: %d, Size: %d", nalu->offset, nalu->size);
+
+beach:
+  return res;
+}
+
 /**
  * gst_h264_parser_identify_nalu_unchecked:
  * @nalparser: a #GstH264NalParser
@@ -1290,28 +1332,27 @@ gst_h264_parser_identify_nalu_unchecked (GstH264NalParser * nalparser,
 
   memset (nalu, 0, sizeof (*nalu));
 
+  // data size is <= 3 bytes. Only short start code might be detected which is not sufficient to identify nalu
   if (size < offset + 4) {
-    GST_DEBUG ("Can't parse, buffer has too small size %" G_GSIZE_FORMAT
-        ", offset %u", size, offset);
-    return GST_H264_PARSER_ERROR;
+    GST_DEBUG("Can't parse, buffer has too small size %" G_GSIZE_FORMAT ", offset %u", size, offset);
+    return GST_H264_PARSER_FEW_DATA;
   }
 
+  // identify 0x000001 pattern offset
   off1 = scan_for_start_codes (data + offset, size - offset);
-
   if (off1 < 0) {
-    GST_DEBUG ("No start code prefix in this buffer");
+    GST_DEBUG("No start code prefix in this buffer");
     return GST_H264_PARSER_NO_NAL;
   }
 
+  // WTF??? What does this mean? If we found start code we have 3 bytes in data after offset
   if (offset + off1 == size - 1) {
     GST_DEBUG ("Missing data to identify nal unit");
-
-    return GST_H264_PARSER_ERROR;
+//    return GST_H264_PARSER_ERROR;
+    return GST_H264_PARSER_FEW_DATA;
   }
 
   nalu->sc_offset = offset + off1;
-
-
   nalu->offset = offset + off1 + 3;
   nalu->data = (guint8 *) data;
   nalu->size = size - nalu->offset;
@@ -1325,13 +1366,14 @@ gst_h264_parser_identify_nalu_unchecked (GstH264NalParser * nalparser,
   nalu->valid = TRUE;
 
   /* sc might have 2 or 3 0-bytes */
-  if (nalu->sc_offset > 0 && data[nalu->sc_offset - 1] == 00
-      && (nalu->type == GST_H264_NAL_SPS || nalu->type == GST_H264_NAL_PPS
-          || nalu->type == GST_H264_NAL_AU_DELIMITER))
+  if (nalu->sc_offset > 0 
+        && data[nalu->sc_offset - 1] == 00
+        && (nalu->type == GST_H264_NAL_SPS 
+              || nalu->type == GST_H264_NAL_PPS
+              || nalu->type == GST_H264_NAL_AU_DELIMITER))
     nalu->sc_offset--;
 
-  if (nalu->type == GST_H264_NAL_SEQ_END ||
-      nalu->type == GST_H264_NAL_STREAM_END) {
+  if (nalu->type == GST_H264_NAL_SEQ_END || nalu->type == GST_H264_NAL_STREAM_END) {
     GST_DEBUG ("end-of-seq or end-of-stream nal found");
     nalu->size = 1;
     return GST_H264_PARSER_OK;
@@ -1358,10 +1400,17 @@ gst_h264_parser_identify_nalu (GstH264NalParser * nalparser,
 {
   GstH264ParserResult res;
   gint off2;
+  
+  /*
+   * NOTE: 
+   *   источник H.264 : Advanced video coding for generic audiovisual services (https://www.itu.int/rec/T-REC-H.264-201610-I/en)
+   *   страница 329: пункт 3 говорит о том, что конец очередного NAL unit определяется
+   *      а) началом SC следующего NAL unit
+   *      б) концом потока
+   *   то есть данные из заголовка не принимают участия в разбиении bytestream на части
+   */
 
-  res =
-      gst_h264_parser_identify_nalu_unchecked (nalparser, data, offset, size,
-      nalu);
+  res = gst_h264_parser_identify_nalu_unchecked (nalparser, data, offset, size, nalu);
 
   if (res != GST_H264_PARSER_OK || nalu->size == 1)
     goto beach;
@@ -1369,7 +1418,6 @@ gst_h264_parser_identify_nalu (GstH264NalParser * nalparser,
   off2 = scan_for_start_codes (data + nalu->offset, size - nalu->offset);
   if (off2 < 0) {
     GST_DEBUG ("Nal start %d, No end found", nalu->offset);
-
     return GST_H264_PARSER_NO_NAL_END;
   }
 
@@ -1378,7 +1426,7 @@ gst_h264_parser_identify_nalu (GstH264NalParser * nalparser,
    * parsing them again on the next NAL */
   while (off2 > 0 && data[nalu->offset + off2 - 1] == 00)
     off2--;
-
+  
   nalu->size = off2;
   if (nalu->size < 2)
     return GST_H264_PARSER_BROKEN_DATA;

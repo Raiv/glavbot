@@ -6,8 +6,8 @@
 #include "gvb-error.h"
 #include <glib.h>
 #include <glib/gstdio.h>
-#include <gio/gio.h>
 #include <glib-unix.h>
+#include <gio/gio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <fcntl.h>
@@ -15,71 +15,19 @@
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
+#include <inttypes.h>
 #include <linux/videodev2.h>
+#include "gsth264parser.h"
+#include "nalutils.h"
 
 #define UI FALSE
 
-#ifndef V4L2_BUF_FLAG_MAPPED
-#define V4L2_BUF_FLAG_MAPPED			0x00000001
-#endif
-#ifndef V4L2_BUF_FLAG_QUEUED
-#define V4L2_BUF_FLAG_QUEUED			0x00000002
-#endif
-#ifndef V4L2_BUF_FLAG_DONE
-#define V4L2_BUF_FLAG_DONE			0x00000004
-#endif
-#ifndef V4L2_BUF_FLAG_KEYFRAME
-#define V4L2_BUF_FLAG_KEYFRAME			0x00000008
-#endif
-#ifndef V4L2_BUF_FLAG_PFRAME
-#define V4L2_BUF_FLAG_PFRAME			0x00000010
-#endif
-#ifndef V4L2_BUF_FLAG_BFRAME
-#define V4L2_BUF_FLAG_BFRAME			0x00000020
-#endif
-#ifndef V4L2_BUF_FLAG_ERROR
-#define V4L2_BUF_FLAG_ERROR			0x00000040
-#endif
-#ifndef V4L2_BUF_FLAG_TIMECODE
-#define V4L2_BUF_FLAG_TIMECODE			0x00000100
-#endif
-#ifndef V4L2_BUF_FLAG_PREPARED
-#define V4L2_BUF_FLAG_PREPARED			0x00000400
-#endif
-#ifndef V4L2_BUF_FLAG_NO_CACHE_INVALIDATE
-#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x00000800
-#endif
-#ifndef V4L2_BUF_FLAG_NO_CACHE_CLEAN
-#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x00001000
-#endif
-#ifndef V4L2_BUF_FLAG_TIMESTAMP_MASK
-#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0x0000e000
-#endif
-#ifndef V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN
-#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
-#endif
-#ifndef V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
-#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
-#endif
-#ifndef V4L2_BUF_FLAG_TIMESTAMP_COPY
-#define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
-#endif
-#ifndef V4L2_BUF_FLAG_TSTAMP_SRC_MASK
-#define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
-#endif
-#ifndef V4L2_BUF_FLAG_TSTAMP_SRC_EOF
-#define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
-#endif
-#ifndef V4L2_BUF_FLAG_TSTAMP_SRC_SOE
-#define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
-#endif
-
-
-
 static GvbNetworkOptions _nwk_opts = {0};
 static GvbCameraOptions  _cam_opts = {0};
-//static GvbServerOptions  _srv_opts = {};
 static GvbClientOptions  _cli_opts = {};
+static GstH264NalParser *_parser   = NULL;
+static GBytes           *_nalu_buf = NULL;
+static GstH264NalUnit    _nalu;
 
 static GOptionContext *_opt_ctx = NULL;
 static GMainLoop      *_loop    = NULL;
@@ -99,7 +47,7 @@ typedef struct {
     // показывает, каким образом увеличение влияет на объём генерируемых данных
     // положительное значение - при увеличении параметра ожидается увеличение объёма данных
     // отричательное значение - обратная зависимость
-    gint32 rtt_influence;
+    gfloat volume_influence;
     gint32 min;
     gint32 max;
     gint32 step;
@@ -111,10 +59,10 @@ typedef struct {
 // сначала изменяется первый; если уперлись в min или max, только тогда берёмся
 // за второй, потом за третий и т.д.
 static Control controls[] = { 
-    { .id=GVB_CAMERA_CONTROL_BITRATE, .rtt_influence=1,  .min=0, .max=0, .step=0, .deflt=0, .value=0 }
-  , { .id=GVB_CAMERA_CONTROL_FRAME_RATE, .rtt_influence=1,  .min=0, .max=0, .step=0, .deflt=0, .value=0 }
-  , { .id=GVB_CAMERA_CONTROL_EXPOSURE_TIME, .rtt_influence=-1, .min=0, .max=0, .step=0, .deflt=0, .value=0 }
-  , { .id=GVB_CAMERA_CONTROL_INTER_FRAME_PERIOD, .rtt_influence=-1, .min=0, .max=0, .step=0, .deflt=0, .value=0 }
+    { .id=GVB_CAMERA_CONTROL_BITRATE, .volume_influence=1.0,  .min=0, .max=0, .step=0, .deflt=0, .value=0 }
+  , { .id=GVB_CAMERA_CONTROL_FRAME_RATE, .volume_influence=1.0,  .min=0, .max=0, .step=0, .deflt=0, .value=0 }
+  , { .id=GVB_CAMERA_CONTROL_EXPOSURE_TIME, .volume_influence=-1.0, .min=0, .max=0, .step=0, .deflt=0, .value=0 }
+  , { .id=GVB_CAMERA_CONTROL_INTER_FRAME_PERIOD, .volume_influence=0.0, .min=0, .max=0, .step=0, .deflt=0, .value=0 }
 };
 
 #define BTR_CTL (controls[0])
@@ -131,41 +79,229 @@ gboolean sigint_handler(gpointer user_data)
     return TRUE;
 }
 
+static const gchar* 
+get_nal_type_desc(GstH264NalUnitType type)
+{
+    const gchar *retval = NULL;
+    switch(type) {
+        case GST_H264_NAL_UNKNOWN:
+            retval = "GST_H264_NAL_UNKNOWN";
+            break;
+        case GST_H264_NAL_SLICE:
+            retval = "GST_H264_NAL_SLICE";
+            break;
+        case GST_H264_NAL_SLICE_DPA:
+            retval = "GST_H264_NAL_SLICE_DPA";
+            break;
+        case GST_H264_NAL_SLICE_DPB:
+            retval = "GST_H264_NAL_SLICE_DPB";
+            break;
+        case GST_H264_NAL_SLICE_DPC:
+            retval = "GST_H264_NAL_SLICE_DPC";
+            break;
+        case GST_H264_NAL_SLICE_IDR:
+            retval = "GST_H264_NAL_SLICE_IDR";
+            break;
+        case GST_H264_NAL_SEI:
+            retval = "GST_H264_NAL_SEI";
+            break;
+        case GST_H264_NAL_SPS:
+            retval = "GST_H264_NAL_SPS";
+            break;
+        case GST_H264_NAL_PPS:
+            retval = "GST_H264_NAL_PPS";
+            break;
+        case GST_H264_NAL_AU_DELIMITER:
+            retval = "GST_H264_NAL_AU_DELIMITER";
+            break;
+        case GST_H264_NAL_SEQ_END:
+            retval = "GST_H264_NAL_SEQ_END";
+            break;
+        case GST_H264_NAL_STREAM_END:
+            retval = "GST_H264_NAL_STREAM_END";
+            break;
+        case GST_H264_NAL_FILLER_DATA:
+            retval = "GST_H264_NAL_FILLER_DATA";
+            break;
+        case GST_H264_NAL_SPS_EXT:
+            retval = "GST_H264_NAL_SPS_EXT";
+            break;
+        case GST_H264_NAL_PREFIX_UNIT:
+            retval = "GST_H264_NAL_PREFIX_UNIT";
+            break;
+        case GST_H264_NAL_SUBSET_SPS:
+            retval = "GST_H264_NAL_SUBSET_SPS";
+            break;
+        case GST_H264_NAL_DEPTH_SPS:
+            retval = "GST_H264_NAL_DEPTH_SPS";
+            break;
+        case GST_H264_NAL_SLICE_AUX:
+            retval = "GST_H264_NAL_SLICE_AUX";
+            break;
+        case GST_H264_NAL_SLICE_EXT:
+            retval = "GST_H264_NAL_SLICE_EXT";
+            break;
+        case GST_H264_NAL_SLICE_DEPTH:
+            retval = "GST_H264_NAL_SLICE_DEPTH";
+            break;
+        default:
+            retval = "<<unknown>>";
+            break;
+    }
+    return retval;
+}
+
+static 
+gboolean process_nalu(gpointer chunk, guint32 chunk_len, gboolean last)
+{
+    static GByteArray *ba = NULL;
+    static gint scan_result1 = -1, scan_result2 = -1;
+    
+    gboolean retval = FALSE;
+    GstH264ParserResult result;
+    
+    if(!ba) {
+        ba = g_byte_array_new();
+    }
+    
+    // this will copy data memory to internal store
+    g_byte_array_append(ba, chunk, chunk_len);
+    
+    if(scan_result1<0) {
+        scan_result1 = scan_for_start_codes(ba->data, ba->len);
+    }
+
+    if(scan_result1>=0) {
+        scan_result2 = scan_for_start_codes(ba->data+scan_result1+3, ba->len-scan_result1);
+        if(scan_result2>=0) {
+            scan_result2 += 3;
+        }
+    }
+
+    if(scan_result1>=0)
+    {
+        if(scan_result2>0) {
+            g_assert_true(scan_result2>scan_result1);
+        }
+        if(scan_result2>0 || last) {
+            memset(&_nalu, 0, sizeof(GstH264NalUnit));
+            result = gst_h264_parser_identify_nalu(_parser, ba->data, 0, ba->len, &_nalu);
+            if(result==GST_H264_PARSER_OK)
+            {
+                if(_nalu_buf) {
+                    g_clear_pointer(&_nalu_buf, g_bytes_unref);
+                }
+                _nalu_buf = g_bytes_new_take(g_memdup(ba->data, scan_result2), scan_result2);
+                g_byte_array_remove_range(ba, 0, scan_result2);
+                scan_result1 = -1;
+                scan_result2 = -1;
+                retval = TRUE;
+            }
+            else {
+                // gst_h264_parser_identify_nalu does not know how to handle end of stream
+                if(last) {
+                    _nalu_buf = g_bytes_new_take(g_memdup(ba->data, ba->len), ba->len);
+                    retval = TRUE;
+                }
+                else {
+                    g_print("parser failed!\n");
+                }
+            }
+        }
+    }
+    return retval;
+}
+
 static void 
 camera_cb(gpointer user_data, gpointer start, guint32 bytes, guint32 flags)
 {
     GError *error = NULL;
     GvbClient *client = GVB_CLIENT(user_data);
-    guint32 bytes_tx = bytes;
-/*
-    gvb_log_message("%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"
-      , (flags & V4L2_BUF_FLAG_MAPPED ? "V4L2_BUF_FLAG_MAPPED " : "")
-      , (flags & V4L2_BUF_FLAG_QUEUED ? "V4L2_BUF_FLAG_QUEUED " : "")
-      , (flags & V4L2_BUF_FLAG_DONE ? "V4L2_BUF_FLAG_DONE " : "")
-      , (flags & V4L2_BUF_FLAG_ERROR ? "V4L2_BUF_FLAG_ERROR " : "")
-      , (flags & V4L2_BUF_FLAG_KEYFRAME ? "V4L2_BUF_FLAG_KEYFRAME " : "")
-      , (flags & V4L2_BUF_FLAG_PFRAME ? "V4L2_BUF_FLAG_PFRAME " : "")
-      , (flags & V4L2_BUF_FLAG_BFRAME ? "V4L2_BUF_FLAG_BFRAME " : "")
-      , (flags & V4L2_BUF_FLAG_TIMECODE ? "V4L2_BUF_FLAG_TIMECODE " : "")
-      , (flags & V4L2_BUF_FLAG_PREPARED ? "V4L2_BUF_FLAG_PREPARED " : "")
-      , (flags & V4L2_BUF_FLAG_NO_CACHE_INVALIDATE ? "V4L2_BUF_FLAG_NO_CACHE_INVALIDATE " : "")
-      , (flags & V4L2_BUF_FLAG_NO_CACHE_CLEAN ? "V4L2_BUF_FLAG_NO_CACHE_CLEAN " : "")
-      //, (flags & V4L2_BUF_FLAG_LAST ? "V4L2_BUF_FLAG_LAST " : "")
-      , (flags & V4L2_BUF_FLAG_TIMESTAMP_MASK ? "V4L2_BUF_FLAG_TIMESTAMP_MASK " : "")
-      , (flags & V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN ? "V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN " : "")
-      , (flags & V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC ? "V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC " : "")
-      , (flags & V4L2_BUF_FLAG_TIMESTAMP_COPY ? "V4L2_BUF_FLAG_TIMESTAMP_COPY " : "")
-      , (flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK ? "V4L2_BUF_FLAG_TSTAMP_SRC_MASK " : "")
-      , (flags & V4L2_BUF_FLAG_TSTAMP_SRC_EOF ? "V4L2_BUF_FLAG_TSTAMP_SRC_EOF " : "")
-      , (flags & V4L2_BUF_FLAG_TSTAMP_SRC_SOE ? "V4L2_BUF_FLAG_TSTAMP_SRC_SOE " : "")
-    );
-*/
+    gboolean has_nalu = FALSE;
+    gint64 time_diff;
     
-    if(_bitrate_ratio < 1 && _drop_buffers) {
-        //NOTE: убрал, чтобы совсем не отбрасывать данные. При критической ситуации - 
-        // минимальные настройки камеры и всё равно не влезаем в канал, мы будем делать
-        // turn_streaming_off
-        //bytes_tx = (guint32)round(_bitrate_ratio*bytes);
+    static gint64 keep_alive_timeout = 0;
+    static gint64 last_tx = 0;
+    static gfloat last_ratio = 0.0;
+    
+    static gboolean post_idr_flag = FALSE;
+    static gint     post_idr_seq = 0;
+    
+    has_nalu = process_nalu(start, bytes, FALSE);
+    
+    //--------------------------------------------------------------------------
+    // Здесь должна начинаться проверка на сброс фрейма
+    
+    // если не умещаемся в канал
+    if(_bitrate_ratio < 1 && _drop_buffers)
+    {
+        // если ration идёт в рост, то увеличиваем частоту отправки пропорционально
+        if(_bitrate_ratio>last_ratio) {
+            keep_alive_timeout = keep_alive_timeout*last_ratio/_bitrate_ratio;
+        }
+        else {
+            keep_alive_timeout = G_TIME_SPAN_MILLISECOND*1000;
+        }
+        
+        last_ratio = _bitrate_ratio;
+        
+        // но периодически мы должны пытаться отправить данные. Иначе rtt не обновится, не смотря на то, что канал может быть уже в порядке
+        time_diff = g_get_monotonic_time()-last_tx;
+        
+        if(has_nalu) 
+        {
+            if(post_idr_flag)
+            {
+                if(post_idr_seq>0)
+                {
+                    // отправить фрейм, уменьшив post_idr_seq
+                    post_idr_seq--;
+                }
+                else
+                {
+                    post_idr_flag = FALSE;
+                }
+            }
+            if(!post_idr_flag)
+            {
+                if(_nalu.type!=GST_H264_NAL_SLICE_IDR)
+                {
+                    if(time_diff < keep_alive_timeout) 
+                    {
+                        g_clear_pointer(&_nalu_buf, g_bytes_unref);
+                        gvb_log_message(
+                            "nalu dropped, offset=%-10d, size=%-10d, ref_idc=%-2d, type=%-25s(%-2d)"
+                            ", idr_pic_flag=%d, valid=%d, header_bytes=%-2d"
+                            ", extension_type=%-2d"
+                          , _nalu.offset
+                          , _nalu.size
+                          , _nalu.ref_idc
+                          , get_nal_type_desc(_nalu.type) // GstH264NalUnitType
+                          , _nalu.type
+                          , _nalu.idr_pic_flag
+                          , _nalu.valid
+                          , _nalu.header_bytes
+                          , _nalu.extension_type
+                        );
+                        return;
+                    }
+                }
+                else
+                {
+                    post_idr_flag = TRUE;
+                    post_idr_seq = 15;
+                }
+            }
+        }
+    }
+    
+    last_ratio = _bitrate_ratio;
+    
+    //--------------------------------------------------------------------------
+    // Здесь начинается отсылка nalu
+    
+    if(!has_nalu) {
+        return;
     }
     
     GOutputStream *ostream = NULL;
@@ -175,19 +311,34 @@ camera_cb(gpointer user_data, gpointer start, guint32 bytes, guint32 flags)
     }
     
     gssize wsize = -1;
-    if((wsize=g_output_stream_write(ostream, start, bytes_tx, NULL, &error))<0) {
+    gsize nsize = -1;
+    gconstpointer ndata = g_bytes_get_data(_nalu_buf, &nsize);
+    if((wsize=g_output_stream_write(ostream, ndata, nsize, NULL, &error))<0) {
         gvb_log_error(&error);
         if(error && error->code==G_IO_ERROR_BROKEN_PIPE) {
             if(!gvb_camera_turn_streaming_off(_camera, &error)) {
                 gvb_log_error(&error);
             }
         }
+        g_clear_pointer(&_nalu_buf, g_bytes_unref);
         return;
     }
+    g_clear_pointer(&_nalu_buf, g_bytes_unref);
+    last_tx = g_get_monotonic_time();
     
-    if(bytes_tx!=bytes) {
-        gvb_log_message("partially send: [%d/%d]", bytes-bytes_tx, bytes_tx);
-    }
+    gvb_log_message("nalu sent   , offset=%-10d, size=%-10d, ref_idc=%-2d, type=%-25s(%-2d)"
+          ", idr_pic_flag=%d, valid=%d, header_bytes=%-2d"
+          ", extension_type=%-2d"
+      , _nalu.offset
+      , _nalu.size
+      , _nalu.ref_idc
+      , get_nal_type_desc(_nalu.type) // GstH264NalUnitType
+      , _nalu.type
+      , _nalu.idr_pic_flag
+      , _nalu.valid
+      , _nalu.header_bytes
+      , _nalu.extension_type
+    );
 }
 
 static void 
@@ -201,7 +352,7 @@ static void
 client_connect_cb(gboolean connected, gpointer user_data)
 {
     GError *error = NULL;
-    gvb_log_message("client_connect_cb");
+    gvb_log_message("client_connect_cb handler: [%d]", connected);
     if(connected) {
         if(_client_data_fd>=0) {
             if(!g_close(_client_data_fd, &error)) {
@@ -211,14 +362,9 @@ client_connect_cb(gboolean connected, gpointer user_data)
                 _client_data_fd = -1;
             }
         }
-        
         const gchar *home_dir = g_get_home_dir();
         const gchar *file_name = "client_data.h264";
-        
-        if(!home_dir) {
-            gvb_log_warning("can't find home");
-        }
-        else {            
+        if(home_dir) {            
             gchar *path = g_build_filename(home_dir, file_name, NULL);
             if(path){
                 gvb_log_message("create output file: [%s]", path);
@@ -234,6 +380,10 @@ client_connect_cb(gboolean connected, gpointer user_data)
                 gvb_log_warning("g_build_filename error");
             }
         }
+        else {
+            gvb_log_warning("can't find home");
+        }
+        
         if(!gvb_camera_turn_streaming_on(_camera, &error)) {
             gvb_log_error(&error);
         }
@@ -256,21 +406,29 @@ client_connect_cb(gboolean connected, gpointer user_data)
 static void
 client_input_data_cb(gchar *data, gsize size, gpointer user_data)
 {
+    static const gint64 print_timeout = 500*G_TIME_SPAN_MILLISECOND;
+    // how many bytes server received so far
     static guint32 size_sum = 0;
+    // last monotonic time server received at least one byte
     static gint64 last_tm = 0;
-    gboolean print = FALSE;
     
+    // early exit
+    if(size<=0) {
+        return;
+    }
+    
+    // write to file
     if(_client_data_fd >= 0) {
         gsize wc = size;
         gsize ret = -1;
         while(wc > 0) {
             ret = write(_client_data_fd, data, size);
             if(ret < 0) {
-                gvb_log_critical("write error: [%s]", strerror(errno));
+                gvb_log_critical("write client data to file error: [%s]", strerror(errno));
                 break;
             }
             else if(!ret) {
-                gvb_log_warning("write zero bytes: [%s]", strerror(errno));
+                gvb_log_warning("write zero bytes to client data file: [%s]", strerror(errno));
             }
             else {
                 wc -= ret;
@@ -280,64 +438,67 @@ client_input_data_cb(gchar *data, gsize size, gpointer user_data)
     
     size_sum += size;
     
-    if(!last_tm) {
+    if(!last_tm || (g_get_monotonic_time() - last_tm > print_timeout)) {
         last_tm = g_get_monotonic_time();
-        print = TRUE;
-    }
-    else {
-        if(g_get_monotonic_time() - last_tm > G_TIME_SPAN_MILLISECOND*500) {
-            last_tm = g_get_monotonic_time();
-            print = TRUE;
-        }
-    }
-    
-    if(print) {
         gvb_log_message("client_input_data_cb: receive client data [%d]", size_sum);
     }
-    
-    // todo: данные, пришедшие от клиента
 }
 
 static gboolean
 camera_slow_down(
       gfloat *tx_bytes_per_sec, gfloat *camera_bytes_per_sec, gfloat *bytes_tolerance, GError **error )
 {
+    // early exit
+    if(*camera_bytes_per_sec < *tx_bytes_per_sec) {
+        gvb_log_warning("camera_slow_down: unexpected tx_bytes_per_sec(%f) < camera_bytes_per_sec(%f)", *tx_bytes_per_sec, *camera_bytes_per_sec);
+        return TRUE;
+    }
+
     // множитель для шага изменения параметра равен отношению между
-    // 1) отклонением текущего bytes_per_sec от значения, которое может обеспечить сеть
-    // 2) значению tolerance
-    gint32 step_mult = 0;
-    if(*tx_bytes_per_sec <= *camera_bytes_per_sec) {
-        step_mult = round((*camera_bytes_per_sec-*tx_bytes_per_sec)/(*bytes_tolerance));
-    }
-    else {
-        g_set_error(error, GVB_ERROR, GVB_ERROR_ILLEGAL_STATE
-                , "camera_speed_up: unexpected tx_bytes_per_sec > camera_bytes_per_sec");
-        return FALSE;
-    }
-    
+    //  - отклонением текущего bytes_per_sec от значения, которое может обеспечить сеть
+    //  - значению tolerance
+    // то есть величина корректировки зависит от того, насколько объём генерируемых
+    // камерой данных не соответствует пропускной способности канала в единицах tolerance
+    gfloat step_mult = (*camera_bytes_per_sec-*tx_bytes_per_sec)/(*bytes_tolerance);
     gint32 ctl_value = 0;
     gint32 ctl_value_new = 0;
     gint32 i = 0;
+    
+    if(step_mult<=0) {
+        gvb_log_warning("camera_slow_down: unexpected step_mult(%f)", step_mult);
+        gvb_log_message("diagnostics1: %f, %f, %f", *camera_bytes_per_sec, *tx_bytes_per_sec, *bytes_tolerance);
+        return TRUE;
+    }
+    
     for(i=0; i<G_N_ELEMENTS(controls); i++) 
     {
+        // не смогли получить параметр
         if(!gvb_camera_get_control(_camera, error, controls[i].id, &ctl_value)) {
             return FALSE;
         }
-        
-        if(controls[i].id==GVB_CAMERA_CONTROL_INTER_FRAME_PERIOD) {
-            continue;
+        // volume_influence - параметр, который позволяет задать насколько он влияет на объём генерируемых камерой данных. 
+        // Его нужно настроить либо эмпирическим путём или каким-то образом собирать статистику 
+        // во время работы программы и определять из неё
+        // volume_influence > 0 - значит, что увеличение численного значения параметра приведёт к
+        //   увилечению объёма. То есть, если мы увеличим численное значение параметра, у нас 
+        //   будет генерироваться больше данных, которые дольше передавать
+        // volume_influence < 0 - значит, наоборот, чем меньше численное значение параметра,
+        //   тем больше данных будет генерироваться и тем дольше мы их будем передавать
+        ctl_value_new = ctl_value + (-1)*round(controls[i].volume_influence*step_mult*controls[i].step);
+        // защищаемся от выхода за границы допустимых значений параметра
+        if(controls[i].volume_influence > 0){
+            ctl_value_new = MAX( ctl_value_new, controls[i].min );
         }
-        
-        ctl_value_new = ctl_value;    
-        if(controls[i].rtt_influence > 0){
-            ctl_value_new = MAX(ctl_value-step_mult*controls[i].step, controls[i].min); // уменьшаем
+        else if(controls[i].volume_influence < 0){
+            ctl_value_new = MIN( ctl_value_new, controls[i].max );
         }
-        else if(controls[i].rtt_influence < 0){
-            ctl_value_new = MIN(ctl_value+step_mult*controls[i].step, controls[i].max); // увеличиваем
+        else {
+            ctl_value_new = ctl_value;
         }
         
         if(ctl_value_new!=ctl_value) {
             if(!gvb_camera_set_control(_camera, error, controls[i].id, &ctl_value_new)){
+                gvb_log_message("diagnostics2: %d, %f, %f, %d", ctl_value, controls[i].volume_influence, step_mult, controls[i].step);
                 return FALSE;
             }
             _max_quality = FALSE;
@@ -345,15 +506,8 @@ camera_slow_down(
             return TRUE;
         }
     }
-    
     // no controls was set. Droping
     _drop_buffers = TRUE;
-    if(gvb_camera_is_streaming_on(_camera)) {
-        if(!gvb_camera_turn_streaming_off(_camera, error)) {
-            return FALSE;
-        }
-    }
-    
     return TRUE;
 }
 
@@ -364,60 +518,53 @@ static gboolean
 camera_speed_up(
       gfloat *tx_bytes_per_sec, gfloat *camera_bytes_per_sec, gfloat *bytes_tolerance, GError **error )
 {
+    // early exit
+    if(*tx_bytes_per_sec < *camera_bytes_per_sec) {
+        gvb_log_warning("camera_speed_up: unexpected tx_bytes_per_sec(%f) < camera_bytes_per_sec(%f)", *tx_bytes_per_sec, *camera_bytes_per_sec);
+        return TRUE;
+    }
+    
     _drop_buffers = FALSE;
     
-    if(!gvb_camera_is_streaming_on(_camera)) {
-        if(!gvb_camera_turn_streaming_on(_camera, error)) {
-            return FALSE;
-        }
-    }
-    
-    gint32 step_mult = 0;
-    if(*tx_bytes_per_sec >= *camera_bytes_per_sec) {
-        step_mult = round((*tx_bytes_per_sec - *camera_bytes_per_sec)/((*bytes_tolerance)));
-    }
-    else {
-        g_set_error(error, GVB_ERROR, GVB_ERROR_ILLEGAL_STATE
-                , "camera_speed_up: unexpected tx_bytes_per_sec < camera_bytes_per_sec");
-        return FALSE;
-    }
-    
-    if(step_mult < 0) {
-        step_mult = 1;
-    }
-    
+    gfloat step_mult = (*tx_bytes_per_sec - *camera_bytes_per_sec)/((*bytes_tolerance));
     gint32 ctl_value = 0;
     gint32 ctl_value_new = 0;
     gint32 i = 0;
+    
+    if(step_mult<=0) {
+        gvb_log_warning("camera_slow_down: unexpected step_mult(%f)", step_mult);
+        gvb_log_message("diagnostics1: %f, %f, %f", *camera_bytes_per_sec, *tx_bytes_per_sec, *bytes_tolerance);
+        return TRUE;
+    }
+    
     for(i=G_N_ELEMENTS(controls)-1; i>=0; i--) 
     {
         if(!gvb_camera_get_control(_camera, error, controls[i].id, &ctl_value)) {
             return FALSE;
         }
-        
-        if(controls[i].id==GVB_CAMERA_CONTROL_INTER_FRAME_PERIOD) {
-            continue;
+        ctl_value_new = ctl_value + round(controls[i].volume_influence*step_mult*controls[i].step);
+        // защищаемся от выхода за границы допустимых значений параметра
+        if(controls[i].volume_influence > 0){
+            ctl_value_new = MIN(ctl_value_new, controls[i].max);
         }
-        
-        ctl_value_new = ctl_value;
-        if(controls[i].rtt_influence > 0){
-            ctl_value_new = MIN(ctl_value+step_mult*controls[i].step, controls[i].max); // увеличиваем
+        else if(controls[i].volume_influence < 0){
+            ctl_value_new = MAX(ctl_value_new, controls[i].min);
         }
-        else if(controls[i].rtt_influence < 0){
-            ctl_value_new = MAX(ctl_value-step_mult*controls[i].step, controls[i].min); // уменьшаем
+        else {
+            ctl_value_new = ctl_value;
         }
 
         if(ctl_value_new!=ctl_value) {
             if(!gvb_camera_set_control(_camera, error, controls[i].id, &ctl_value_new)){
+                gvb_log_message("diagnostics: %d, %f, %f, %d", ctl_value, controls[i].volume_influence, step_mult, controls[i].step);
                 return FALSE;
             }
             controls[i].value = ctl_value_new;
             return TRUE;
         }
     }
-    
+    // no controls was set
     _max_quality = TRUE;
-    
     return TRUE;
 }
 
@@ -426,61 +573,73 @@ timeout_cb(gpointer user_data)
 {
     GError *error = NULL;
     
+    // получаем статистику с камеры
+    GvbCameraStatistics camera_stats = {0};
+    if(!gvb_camera_get_statistics(_camera, &error, &camera_stats)) {
+        gvb_log_error(&error);
+        return TRUE;
+    }
+    // нам нужно знать сколько байт в секунду генерирует камера? 
+    // Чтобы этот показатель был более или менее точным, необходимо подождать 
+    // какое-то время
+    if(g_get_monotonic_time()-camera_stats.start_time < 2*G_TIME_SPAN_SECOND) {
+        return TRUE;
+    }
+    
     // Проверить размер очереди отправки, поместятся ли туда наши данные
     //    NOTE: не так всё просто с очередями (очередь драйвера, QDisc, Class, Filter)
     //      Более универсальный способ, наверно, всё-таки поддерживать целевой rtt
     //      потому что есть ли очередь, её размер очень сильно зависят от настроек
     //      сетевого стека и это может меняться в процессе выполенения
 
-    // rtt в ms
+    // получаем rtt в ms от клиента
     static guint32 snd_rtt=0, rcv_rtt=0, snd_mss=0, rcv_mss=0;
     if(!gvb_client_get_rtt(_client, &snd_rtt, &rcv_rtt, &snd_mss, &rcv_mss, &error)) {
         gvb_log_error(&error);
         return TRUE;
     }
     
-    GvbCameraStatistics camera_stats = {0};
-    if(!gvb_camera_get_statistics(_camera, &error, &camera_stats)) {
-        gvb_log_error(&error);
-        return TRUE;
-    }
+    /** 
+     * имеем следующий алгоритм:
+     * C - сколько байт генерирует камера в секунду
+     * T - сколько байт в секунду позволяет нам передавать канал
+     * H - запас в пропускной способности канала в сторону уменьшения T 
+     *      (алгоритм определения T не идеален, поэтому надо заложить некий "запас"
+     *       так как мы пессимисты)
+     * t - шаг изменения T при котором мы меняем параметры камеры
+     * 
+     * если C > T-H+t то
+     *   уменьшаем C
+     * иначе если C < T-H-t то
+     *   увеличиваем C
+     * иначе
+     *   ничего не меняем
+     * конец если
+     */
     
-    // сколько пакетов в секунду мы можем пересылать при таком rtt?
+    // сколько сегментов в секунду мы можем пересылать при таком rtt?
     gfloat tx_pkg_per_sec = 1000000.0/snd_rtt;
     // сколько байт в секунду мы можем пересылать при таком rtt?
+    // mss - maximum segment size, может меняться. Но, чтобы хоть как-то оценить, 
+    // берём текущее значение
     gfloat tx_bytes_per_sec = tx_pkg_per_sec*rcv_mss;
-    // сколько байт в секунду генерирует камера?
-    // здесь нужно подождать минимум 2 секунды
-    static gint64 start_time = 0;
-    static gboolean stable = FALSE;
-    if(!stable) {
-        if(start_time==0) {
-            start_time = g_get_monotonic_time();
-            return TRUE;
-        }
-        else {
-            if(g_get_monotonic_time()-start_time < 3*G_TIME_SPAN_SECOND) {
-                return TRUE;
-            }
-            else {
-                stable = TRUE;
-            }
-        }
-    }
-    gfloat camera_bytes_per_sec = camera_stats.bytes_per_second_avg2/2.0;
-    // мы должны иметь запас между camera_bytes_per_sec и tx_bytes_per_sec
-    gfloat bytes_handicap = tx_bytes_per_sec/10.0;
-    tx_bytes_per_sec = tx_bytes_per_sec - bytes_handicap;
+    // сколько байт камера в среднем генерирует в секунду
+    gfloat camera_bytes_per_sec = 2.0*camera_stats.bytes_per_second_avg0_5;
+    // мы должны иметь запас tx_bytes_per_sec
+    tx_bytes_per_sec = 0.9*tx_bytes_per_sec;
     // на какое изменение bytes_per_sec мы не будем реагировать
-    //gfloat bytes_tolerance = bytes_handicap / 2.0;
-    gfloat bytes_tolerance = tx_bytes_per_sec / 10; // 10000.0; // 10 KB
-    // tx channel vs camera bitrate ratio
+    gfloat bytes_tolerance = tx_bytes_per_sec / 30;
+    // tx channel and camera bitrate ratio
     _bitrate_ratio = tx_bytes_per_sec / camera_bytes_per_sec;
     
     const char *indicator = NULL;
     if((camera_bytes_per_sec > tx_bytes_per_sec + bytes_tolerance) && !_drop_buffers ) {
         // уменшить объём генерируемых камерой данных до (tx_bytes_per_sec-bytes_handicap)
         indicator = "< ";
+        // DOUBT: передаём текущее значение bytes_per_second для камеры, чтобы корректировать
+        // параметры на основе актуальных значений, а не статистических
+//        gfloat cbps = 2.0*camera_stats.bytes_per_second_avg0_5;
+        tx_bytes_per_sec += bytes_tolerance;
         if(!camera_slow_down(&tx_bytes_per_sec, &camera_bytes_per_sec, &bytes_tolerance, &error)) {
             gvb_log_error(&error);
         }
@@ -488,56 +647,44 @@ timeout_cb(gpointer user_data)
     else if ((camera_bytes_per_sec < tx_bytes_per_sec - bytes_tolerance) && !_max_quality) {
         // увеличить объём генерируемых камерой данных до (tx_bytes_per_sec-bytes_handicap)
         indicator = " >";
+        // DOUBT: передаём текущее значение bytes_per_second для камеры, чтобы корректировать
+        // параметры на основе актуальных значений, а не статистических
+//        gfloat cbps = 2.0*camera_stats.bytes_per_second_avg0_5;
+        tx_bytes_per_sec -= bytes_tolerance;
         if(!camera_speed_up(&tx_bytes_per_sec, &camera_bytes_per_sec, &bytes_tolerance, &error)) {
             gvb_log_error(&error);
         }
     }
     else {
-//        gvb_log_message("%f <> %f +- %f, [%d]", camera_bytes_per_sec, tx_bytes_per_sec, bytes_tolerance, _max_quality);
-        indicator = " =";
+        indicator = "==";
     }
-    gvb_log_message("%s: "
-            "bitrate=[%d] fps=[%d] exp_time=[%d] iframe=[%d] "
-            "s_rtt=[%d] s_mss=[%d] r_rtt=[%d] r_mss=[%d] "
-            "tx_Bps=[%f] camera_Bps=[%f]"
-          , indicator
-          , BTR_CTL.value, FPS_CTL.value, EXP_CTL.value, IFR_CTL.value
-          , snd_rtt, snd_mss, rcv_rtt, rcv_mss
-          , tx_bytes_per_sec, camera_bytes_per_sec
-          );
+    if(indicator) {
+//        gvb_log_message("%s", indicator);
+//        gvb_log_message("%s: "
+//                "bitrate=[%10d] fps=[%3d] exp_time=[%3d] iframe=[%2d] "
+//                "s_rtt=[%7d] s_mss=[%4d] r_rtt=[%7d] r_mss=[%4d] "
+//                "tx_Bps=[%12.3f] camera_Bps=[%12.3f]"
+//              , indicator
+//              , BTR_CTL.value, FPS_CTL.value, EXP_CTL.value, IFR_CTL.value
+//              , snd_rtt, snd_mss, rcv_rtt, rcv_mss
+//              , tx_bytes_per_sec, camera_bytes_per_sec
+//              );
+    }
     return TRUE;
 }
 
 static gboolean
 camera_query_controls(GvbCamera *camera, GError **error)
 {
-    if(!gvb_camera_query_control(camera, GVB_CAMERA_CONTROL_FRAME_RATE
-            , &(FPS_CTL.min), &(FPS_CTL.max), &(FPS_CTL.step), &(FPS_CTL.deflt), error)) {
-        return FALSE;
-    }
-    if(!gvb_camera_query_control(camera, GVB_CAMERA_CONTROL_EXPOSURE_TIME
-            , &(EXP_CTL.min), &(EXP_CTL.max), &(EXP_CTL.step), &(EXP_CTL.deflt), error)) {
-        return FALSE;
-    }
-    if(!gvb_camera_query_control(camera, GVB_CAMERA_CONTROL_BITRATE
-            , &(BTR_CTL.min), &(BTR_CTL.max), &(BTR_CTL.step), &(BTR_CTL.deflt), error)) {
-        return FALSE;
-    }
-    if(!gvb_camera_query_control(camera, GVB_CAMERA_CONTROL_INTER_FRAME_PERIOD
-            , &(IFR_CTL.min), &(IFR_CTL.max), &(IFR_CTL.step), &(IFR_CTL.deflt), error)) {
-        return FALSE;
-    }
-    
-    if(!gvb_camera_get_control(camera, error, GVB_CAMERA_CONTROL_FRAME_RATE, &FPS_CTL.value)) {
-        return FALSE;
-    }
-    if(!gvb_camera_get_control(camera, error, GVB_CAMERA_CONTROL_EXPOSURE_TIME, &EXP_CTL.value)) {
-        return FALSE;
-    }
-    if(!gvb_camera_get_control(camera, error, GVB_CAMERA_CONTROL_BITRATE, &BTR_CTL.value)) {
-        return FALSE;
-    }
-    if(!gvb_camera_get_control(camera, error, GVB_CAMERA_CONTROL_INTER_FRAME_PERIOD, &IFR_CTL.value)) {
+    if(    !gvb_camera_query_control(camera, GVB_CAMERA_CONTROL_FRAME_RATE, &(FPS_CTL.min), &(FPS_CTL.max), &(FPS_CTL.step), &(FPS_CTL.deflt), error)
+        || !gvb_camera_query_control(camera, GVB_CAMERA_CONTROL_EXPOSURE_TIME, &(EXP_CTL.min), &(EXP_CTL.max), &(EXP_CTL.step), &(EXP_CTL.deflt), error)
+        || !gvb_camera_query_control(camera, GVB_CAMERA_CONTROL_BITRATE, &(BTR_CTL.min), &(BTR_CTL.max), &(BTR_CTL.step), &(BTR_CTL.deflt), error)
+        || !gvb_camera_query_control(camera, GVB_CAMERA_CONTROL_INTER_FRAME_PERIOD, &(IFR_CTL.min), &(IFR_CTL.max), &(IFR_CTL.step), &(IFR_CTL.deflt), error)
+        || !gvb_camera_get_control(camera, error, GVB_CAMERA_CONTROL_FRAME_RATE, &FPS_CTL.value)
+        || !gvb_camera_get_control(camera, error, GVB_CAMERA_CONTROL_EXPOSURE_TIME, &EXP_CTL.value)
+        || !gvb_camera_get_control(camera, error, GVB_CAMERA_CONTROL_BITRATE, &BTR_CTL.value)
+        || !gvb_camera_get_control(camera, error, GVB_CAMERA_CONTROL_INTER_FRAME_PERIOD, &IFR_CTL.value)
+    ){
         return FALSE;
     }
     return TRUE;
@@ -565,18 +712,27 @@ run_client(int argc, char** argv)
         return EXIT_FAILURE;
     }
     
+    // connect client to destination
     if(!gvb_client_connect(_client, cancellable, &error)) {
         gvb_log_error(&error);
         return EXIT_FAILURE;
     }
     
+    // create camera object
     _camera = gvb_camera_new(&_cam_opts);
-    
     if(!gvb_camera_set_buffer_callback(_camera, camera_cb, g_object_ref(_client), camera_destroy_cb)) {
         gvb_log_critical("gvb_camera_set_buffer_callback fails");
         return EXIT_FAILURE;
     }
     
+    // create parser object
+    _parser = gst_h264_nal_parser_new();
+    if(!_parser) {
+        gvb_log_critical("gst_h264_nal_parser_new fails");
+        return EXIT_FAILURE;
+    }
+
+    // prepare camera for capturing
     if(!gvb_camera_open(_camera, &error)){
         gvb_log_error(&error);
         return EXIT_FAILURE;
@@ -585,22 +741,20 @@ run_client(int argc, char** argv)
         gvb_log_error(&error);
         return EXIT_FAILURE;
     }
-    
-    if(!gvb_camera_start_capturing(_camera, &error)) {
-        gvb_log_error(&error);
-        return EXIT_FAILURE;
-    }
-    
     gint32 ctl_value = 1;
     if(!gvb_camera_set_control(_camera, &error, GVB_CAMERA_CONTROL_INLINE_HEADER, &ctl_value)) {
         gvb_log_error(&error);
     }
-    gvb_log_message("set GVB_CAMERA_CONTROL_INLINE_HEADER = 1");
-    ctl_value = 1;
-    if(!gvb_camera_set_control(_camera, &error, GVB_CAMERA_CONTROL_INTER_FRAME_PERIOD, &ctl_value)) {
+//    ctl_value = 1;
+//    if(!gvb_camera_set_control(_camera, &error, GVB_CAMERA_CONTROL_INTER_FRAME_PERIOD, &ctl_value)) {
+//        gvb_log_error(&error);
+//    }
+    
+    // kick start camera capturing
+    if(!gvb_camera_start_capturing(_camera, &error)) {
         gvb_log_error(&error);
+        return EXIT_FAILURE;
     }
-    gvb_log_message("set GVB_CAMERA_CONTROL_INTER_FRAME_PERIOD = 1");
     
 #if UI
     if(!gvb_ui_start(_camera, NULL, _client, &error)) {
@@ -609,6 +763,7 @@ run_client(int argc, char** argv)
     }
 #endif
     
+    // add timeout event to control data flow
     GSource *timeout_source = g_timeout_source_new(100);
     g_source_set_callback(timeout_source, timeout_cb, NULL, NULL);
     g_source_attach(timeout_source, main_ctx);

@@ -21,7 +21,6 @@
 #ifndef __GST_BIT_READER_H__
 #define __GST_BIT_READER_H__
 
-//#include <gst/gst.h>
 #include "glib.h"
 #include "_gstconfig.h"
 

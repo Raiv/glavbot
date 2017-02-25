@@ -2,13 +2,16 @@
 #include "gvb-client-opt.h"
 #include "gvb-log.h"
 #include "gvb-error.h"
+// glib
 #include <glib.h>
 #include <glib-object.h>
 #include <gio/gio.h>
 #include <gio/gnetworking.h>
+// system
 #include <linux/net_tstamp.h>
 #include <errno.h>
 #include <sys/socket.h>
+// standard
 #include <string.h>
 #include <unistd.h>
 
@@ -157,6 +160,10 @@ gvb_client_connect(GvbClient *self, GCancellable *cancellable, GError **error)
     {
         gchar *str = gvb_network_socket_connection_to_str(P(self)->sconn);
         gvb_log_message("client connected: [%s]", str);
+        
+//        GSocket *socket = g_socket_connection_get_socket(P(self)->sconn);
+//        g_socket_set_keepalive()
+        
         g_free(str);
     }
     else
