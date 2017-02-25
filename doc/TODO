@@ -1,0 +1,1 @@
+Вместо client и server сделать один модуль - Node и его параметры connect, listen (?both)

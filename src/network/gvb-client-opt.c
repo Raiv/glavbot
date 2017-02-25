@@ -7,19 +7,19 @@
 #include "gvb-client-opt.h"
 #include <glib.h>
 
-static gboolean 
-gvb_client_opt_cb(const gchar *name, const gchar *value, gpointer data, GError **error);
+//static gboolean 
+//gvb_client_opt_cb(const gchar *name, const gchar *value, gpointer data, GError **error);
 
 static const GOptionEntry gvb_client_entries[] = {
     { NULL }
 };
 
-static gboolean 
-gvb_client_opt_cb(const gchar *name, const gchar *value, gpointer data, GError **error)
-{
-    GvbClientOptions *options = (GvbClientOptions*)data;
-    return (*error==NULL);
-}
+//static gboolean 
+//gvb_client_opt_cb(const gchar *name, const gchar *value, gpointer data, GError **error)
+//{
+//    GvbClientOptions *options = (GvbClientOptions*)data;
+//    return (*error==NULL);
+//}
 
 GOptionGroup*
 gvb_client_opt_get_group(GvbClientOptions *options)

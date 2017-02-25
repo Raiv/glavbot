@@ -21,6 +21,8 @@ typedef struct GvbNetworkOptions {
     gchar          *addr;
     guint16         port;
     GvbNetworkMode  mode;
+    guint32         rtt_from;
+    guint32         rtt_to;
 } GvbNetworkOptions;
 
 GOptionGroup*

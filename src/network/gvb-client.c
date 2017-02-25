@@ -117,10 +117,6 @@ gvb_client_connection_event (
       , GIOStream          *connection
       , gpointer            user_data)
 {
-    (void*)self;
-    (void*)connectable;
-    (void*)connection;
-    (void*)user_data;
     GEnumClass *enum_cls = g_type_class_ref(G_TYPE_SOCKET_CLIENT_EVENT);
     GEnumValue *enum_val = g_enum_get_value(enum_cls, event);
     g_type_class_unref(enum_cls);
@@ -153,11 +149,11 @@ gvb_client_connect(GvbClient *self, GCancellable *cancellable, GError **error)
     }
     
     gvb_log_message("connectiong client...");
-    if(P(self)->sconn = g_socket_client_connect(
+    if((P(self)->sconn = g_socket_client_connect(
                 P(self)->client
               , G_SOCKET_CONNECTABLE(P(self)->saddr)
               , cancellable
-              , error))
+              , error)))
     {
         gchar *str = gvb_network_socket_connection_to_str(P(self)->sconn);
         gvb_log_message("client connected: [%s]", str);
@@ -212,21 +208,32 @@ gvb_client_get_input_stream(GvbClient *self, GInputStream **istream, GError **er
 }
 
 gboolean
-gvb_client_get_rtt(GvbClient *self, guint32 *snd_rtt, guint32 *rcv_rtt, GError **error)
+gvb_client_get_rtt(GvbClient *self
+    , guint32 *snd_rtt, guint32 *rcv_rtt
+    , guint32 *snd_mss, guint32 *rcv_mss
+    , GError **error)
 {
     if(!self) {
         g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "null pointer: self=[%p]", self);
         return FALSE;
     }
+    
     LOCK(self);
-    gvb_network_socket_get_info(
+    if(!P(self)->sconn) {
+        UNLOCK(self);
+        g_set_error(error, GVB_ERROR, GVB_ERROR_ILLEGAL_STATE, "no client connection");
+        return FALSE;
+    }
+    if(!gvb_network_socket_get_info(
             g_socket_connection_get_socket(P(self)->sconn)
           , snd_rtt
           , rcv_rtt
-          , error );
-    UNLOCK(self);
-    if(*error) {
+          , snd_mss
+          , rcv_mss
+          , error )) {
+        UNLOCK(self);
         return FALSE;
     }
+    UNLOCK(self);
     return TRUE;
 }

@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=None-Linux
+CND_PLATFORM=GNU-Linux
 CND_DLIB_EXT=so
 CND_CONF=Debug-dynamic
 CND_DISTDIR=dist
@@ -47,6 +47,14 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/network/gvb-network.o \
 	${OBJECTDIR}/src/network/gvb-server-opt.o \
 	${OBJECTDIR}/src/network/gvb-server.o \
+	${OBJECTDIR}/src/parser/h264/gst/gstbitreader.o \
+	${OBJECTDIR}/src/parser/h264/gst/gstbytereader.o \
+	${OBJECTDIR}/src/parser/h264/gst/gsth264parser.o \
+	${OBJECTDIR}/src/parser/h264/gst/gstutils.o \
+	${OBJECTDIR}/src/parser/h264/gst/nalutils.o \
+	${OBJECTDIR}/src/tests/gvb-client2server.o \
+	${OBJECTDIR}/src/tests/gvb-misc.o \
+	${OBJECTDIR}/src/tests/gvb-server2client.o \
 	${OBJECTDIR}/src/ui/gvb-ui.o
 
 
@@ -133,6 +141,46 @@ ${OBJECTDIR}/src/network/gvb-server.o: nbproject/Makefile-${CND_CONF}.mk src/net
 	${MKDIR} -p ${OBJECTDIR}/src/network
 	${RM} "$@.d"
 	$(COMPILE.c) -g -Isrc/camera -Isrc/common -Isrc/network -Isrc/ui `pkg-config --cflags glib-2.0` `pkg-config --cflags gobject-2.0` `pkg-config --cflags ncurses` `pkg-config --cflags gio-2.0`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/network/gvb-server.o src/network/gvb-server.c
+
+${OBJECTDIR}/src/parser/h264/gst/gstbitreader.o: nbproject/Makefile-${CND_CONF}.mk src/parser/h264/gst/gstbitreader.c 
+	${MKDIR} -p ${OBJECTDIR}/src/parser/h264/gst
+	${RM} "$@.d"
+	$(COMPILE.c) -g -Isrc/camera -Isrc/common -Isrc/network -Isrc/ui `pkg-config --cflags glib-2.0` `pkg-config --cflags gobject-2.0` `pkg-config --cflags ncurses` `pkg-config --cflags gio-2.0`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/gstbitreader.o src/parser/h264/gst/gstbitreader.c
+
+${OBJECTDIR}/src/parser/h264/gst/gstbytereader.o: nbproject/Makefile-${CND_CONF}.mk src/parser/h264/gst/gstbytereader.c 
+	${MKDIR} -p ${OBJECTDIR}/src/parser/h264/gst
+	${RM} "$@.d"
+	$(COMPILE.c) -g -Isrc/camera -Isrc/common -Isrc/network -Isrc/ui `pkg-config --cflags glib-2.0` `pkg-config --cflags gobject-2.0` `pkg-config --cflags ncurses` `pkg-config --cflags gio-2.0`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/gstbytereader.o src/parser/h264/gst/gstbytereader.c
+
+${OBJECTDIR}/src/parser/h264/gst/gsth264parser.o: nbproject/Makefile-${CND_CONF}.mk src/parser/h264/gst/gsth264parser.c 
+	${MKDIR} -p ${OBJECTDIR}/src/parser/h264/gst
+	${RM} "$@.d"
+	$(COMPILE.c) -g -Isrc/camera -Isrc/common -Isrc/network -Isrc/ui `pkg-config --cflags glib-2.0` `pkg-config --cflags gobject-2.0` `pkg-config --cflags ncurses` `pkg-config --cflags gio-2.0`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/gsth264parser.o src/parser/h264/gst/gsth264parser.c
+
+${OBJECTDIR}/src/parser/h264/gst/gstutils.o: nbproject/Makefile-${CND_CONF}.mk src/parser/h264/gst/gstutils.c 
+	${MKDIR} -p ${OBJECTDIR}/src/parser/h264/gst
+	${RM} "$@.d"
+	$(COMPILE.c) -g -Isrc/camera -Isrc/common -Isrc/network -Isrc/ui `pkg-config --cflags glib-2.0` `pkg-config --cflags gobject-2.0` `pkg-config --cflags ncurses` `pkg-config --cflags gio-2.0`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/gstutils.o src/parser/h264/gst/gstutils.c
+
+${OBJECTDIR}/src/parser/h264/gst/nalutils.o: nbproject/Makefile-${CND_CONF}.mk src/parser/h264/gst/nalutils.c 
+	${MKDIR} -p ${OBJECTDIR}/src/parser/h264/gst
+	${RM} "$@.d"
+	$(COMPILE.c) -g -Isrc/camera -Isrc/common -Isrc/network -Isrc/ui `pkg-config --cflags glib-2.0` `pkg-config --cflags gobject-2.0` `pkg-config --cflags ncurses` `pkg-config --cflags gio-2.0`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/parser/h264/gst/nalutils.o src/parser/h264/gst/nalutils.c
+
+${OBJECTDIR}/src/tests/gvb-client2server.o: nbproject/Makefile-${CND_CONF}.mk src/tests/gvb-client2server.c 
+	${MKDIR} -p ${OBJECTDIR}/src/tests
+	${RM} "$@.d"
+	$(COMPILE.c) -g -Isrc/camera -Isrc/common -Isrc/network -Isrc/ui `pkg-config --cflags glib-2.0` `pkg-config --cflags gobject-2.0` `pkg-config --cflags ncurses` `pkg-config --cflags gio-2.0`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/tests/gvb-client2server.o src/tests/gvb-client2server.c
+
+${OBJECTDIR}/src/tests/gvb-misc.o: nbproject/Makefile-${CND_CONF}.mk src/tests/gvb-misc.c 
+	${MKDIR} -p ${OBJECTDIR}/src/tests
+	${RM} "$@.d"
+	$(COMPILE.c) -g -Isrc/camera -Isrc/common -Isrc/network -Isrc/ui `pkg-config --cflags glib-2.0` `pkg-config --cflags gobject-2.0` `pkg-config --cflags ncurses` `pkg-config --cflags gio-2.0`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/tests/gvb-misc.o src/tests/gvb-misc.c
+
+${OBJECTDIR}/src/tests/gvb-server2client.o: nbproject/Makefile-${CND_CONF}.mk src/tests/gvb-server2client.c 
+	${MKDIR} -p ${OBJECTDIR}/src/tests
+	${RM} "$@.d"
+	$(COMPILE.c) -g -Isrc/camera -Isrc/common -Isrc/network -Isrc/ui `pkg-config --cflags glib-2.0` `pkg-config --cflags gobject-2.0` `pkg-config --cflags ncurses` `pkg-config --cflags gio-2.0`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/tests/gvb-server2client.o src/tests/gvb-server2client.c
 
 ${OBJECTDIR}/src/ui/gvb-ui.o: nbproject/Makefile-${CND_CONF}.mk src/ui/gvb-ui.c 
 	${MKDIR} -p ${OBJECTDIR}/src/ui

@@ -31,7 +31,7 @@ DEFAULTCONF=Debug
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=Debug Release Debug-static Debug-dynamic 
+ALLCONFS=Debug Release Debug-static-armv71 Debug-static-x86_64 Debug-dynamic 
 
 
 # build

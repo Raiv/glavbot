@@ -1,16 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   gvb-log.h
- * Author: Miha
- *
- * Created on September 5, 2016, 4:27 PM
- */
-
 #ifndef GVB_LOG_H
 #define GVB_LOG_H
 
@@ -23,19 +10,29 @@
         g_log(GVB_LOG_DOMAIN, G_LOG_LEVEL_ERROR, __VA_ARGS__);  \
         for (;;) ;                                              \
     } G_STMT_END
+
+static inline void 
+gvb_log_error_l(GError **error, GLogLevelFlags level)
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waddress"
+        if(G_LIKELY((error) && *(error))) {
+#pragma GCC diagnostic pop
+            g_log(g_quark_to_string((*error)->domain)
+                , level, "%s:%d (%d) %s"
+                ,__FILE__, __LINE__
+                ,  (*error)->code, (*error)->message);
+            g_clear_error(error);
+        }
+        else {
+            g_log(GVB_LOG_DOMAIN, G_LOG_LEVEL_ERROR
+                , "error with no object");
+        }
+}
+
 #define gvb_log_error(error)                                    \
-    G_STMT_START {                                              \
-        if G_LIKELY(error && *error) {                          \
-            g_log(g_quark_to_string((*error)->domain)           \
-                , G_LOG_LEVEL_ERROR, "(%d) %s"                  \
-                , (*error)->code, (*error)->message);           \
-            g_clear_error(error);                               \
-        }                                                       \
-        else {                                                  \
-            g_log(GVB_LOG_DOMAIN, G_LOG_LEVEL_ERROR             \
-                , "error with no object");                      \
-        }                                                       \
-    } G_STMT_END
+    gvb_log_error_l(error, G_LOG_LEVEL_CRITICAL)
+
 #define gvb_log_critical(...) g_log(GVB_LOG_DOMAIN, G_LOG_LEVEL_CRITICAL, __VA_ARGS__)
 #define gvb_log_warning(...)  g_log(GVB_LOG_DOMAIN, G_LOG_LEVEL_WARNING, __VA_ARGS__)
 #define gvb_log_message(...)  g_log(GVB_LOG_DOMAIN, G_LOG_LEVEL_MESSAGE, __VA_ARGS__)

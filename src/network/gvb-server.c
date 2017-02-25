@@ -3,6 +3,7 @@
 #include "gvb-network-opt.h"
 #include "gvb-log.h"
 #include "gvb-error.h"
+#include "gvb-ui.h"
 #include <glib.h>
 #include <glib-object.h>
 #include <gio/gio.h>
@@ -47,6 +48,8 @@ struct _GvbServerPrivate {
     gboolean             input_data_pend;   // флаг нужен, чтобы избавиться от множества повторяющихся сообщений GVB_SERVER_MESSAGE_ID_CLIENT_IN_DATA
     GvbInputDataCb       input_data_cb;
     gpointer             input_data_cb_data;
+    GvbClientConnectCb   client_connect_cb;
+    gpointer             client_connect_data;
     gchar               *input_data_buf;
     gsize                input_data_buf_sz;
     guint32              snd_rtt;
@@ -97,8 +100,6 @@ gvb_server_input_data_dummy_cb(gchar *data, gsize size, gpointer user_data);
 static gboolean
 gvb_server_set_input_data_pend_get_old(GvbServer *self, gboolean value);
 // -----------------------------------------------------------------------------
-static gboolean
-gvb_server_timeout_cb(gpointer user_data);
 
 static void
 gvb_server_class_init(GvbServerClass *klass)
@@ -121,6 +122,8 @@ gvb_server_init(GvbServer *self)
     P(self)->input_data_pend = FALSE;
     P(self)->input_data_cb = gvb_server_input_data_dummy_cb;
     P(self)->input_data_cb_data = self;
+    P(self)->client_connect_cb = NULL;
+    P(self)->client_connect_data = NULL;
     P(self)->input_data_buf_sz = 200000; // 200K
     P(self)->input_data_buf = g_slice_alloc(P(self)->input_data_buf_sz);
     P(self)->snd_rtt = 0;
@@ -285,6 +288,7 @@ gvb_server_thread_fn(gpointer user_data)
         gvb_server_message_destroy(msg);
     }
     gvb_log_message("server thread stopped");
+    return NULL;
 }
 
 static void
@@ -317,19 +321,31 @@ gvb_server_start_listen(GvbServer *self)
 }
 
 static void
+gvb_server_config_client_connection(GSocketConnection *connection)
+{
+    // no need to unref socket
+    GSocket *socket = g_socket_connection_get_socket(connection);
+    // set non blocking mode & keep-alive
+    g_socket_set_blocking(socket, FALSE);
+    g_socket_set_keepalive(socket, TRUE);
+    //
+    //TODO: настроить TOS (type of service) - поля в заголовке IP пакета
+    //      которые влияют на работу дефолтного qdisc - pfifo_fast
+    //      http://lartc.org/howto/lartc.qdisc.classless.html
+    //
+}
+
+static void
 gvb_server_handle_client_connection(GvbServer *self, GSocketConnection *connection)
 {
     if(!connection) {
         gvb_log_critical("null connection");
         return;
     }
-    
-    // no need to unref socket
-    GSocket *socket = g_socket_connection_get_socket(connection);
-    // set non blocking mode & keep-alive
-    g_socket_set_blocking(socket, FALSE);
-    g_socket_set_keepalive(socket, TRUE);
+    // конфигурируем
+    gvb_server_config_client_connection(connection);
     // 3-ий параметр GCancellable не совсем понятно, как с ним работать
+    GSocket *socket = g_socket_connection_get_socket(connection);
     GSource *ssource = g_socket_create_source(socket, G_IO_IN | G_IO_PRI | G_IO_NVAL, NULL);
     if(!ssource) {
         gvb_log_critical("fails to create socket source");
@@ -345,6 +361,11 @@ gvb_server_handle_client_connection(GvbServer *self, GSocketConnection *connecti
     }
     P(self)->sconn = g_object_ref(connection);
     P(self)->state = GVB_SERVER_STATE_SERVE;
+    // callback
+    GvbClientConnectCb cb;
+    if((cb=P(self)->client_connect_cb)) {
+        cb(TRUE, P(self)->client_connect_data);
+    }
     UNLOCK(self);
     gvb_log_message("client connected");
 }
@@ -401,26 +422,27 @@ gvb_server_client_socket_source_destroy_cb(gpointer user_data)
 static void
 gvb_server_client_close_connection(GvbServer *self)
 {
+    gvb_log_message("client disconnected");
     LOCK(self);
     g_source_destroy(g_main_context_find_source_by_id(P(self)->main_ctx, P(self)->ssource_id));
     P(self)->ssource_id = 0;
     g_clear_object(&P(self)->sconn);
     P(self)->input_data_pend = FALSE;
     P(self)->state = GVB_SERVER_STATE_LISTEN;
-    gvb_log_message("client disconnected");
     UNLOCK(self);
 }
 
 static void
 gvb_server_handle_client_data(GvbServer *self)
 {
+    GvbClientConnectCb discon_cb = NULL;
+    
     LOCK(self);
-    
     gvb_server_set_input_data_pend_get_old(self, FALSE);
-    
     if(P(self)->state!=GVB_SERVER_STATE_SERVE) {
         UNLOCK(self);
-        gvb_log_warning("illegal state != GVB_SERVER_STATE_SERVE");
+        //это вполне корректный случай
+        //gvb_log_warning("illegal state != GVB_SERVER_STATE_SERVE");
         return;
     }
     
@@ -438,6 +460,7 @@ gvb_server_handle_client_data(GvbServer *self)
         // connection was closed
         if(rec_size==0) {
             gvb_server_client_close_connection(self);
+            discon_cb = P(self)->client_connect_cb;
             break;
         }
         // error occured
@@ -449,12 +472,15 @@ gvb_server_handle_client_data(GvbServer *self)
         else {
             GvbInputDataCb data_cb = P(self)->input_data_cb;
             if(data_cb) {
-                data_cb(P(self)->input_data_buf, rec_size, self);
+                data_cb(P(self)->input_data_buf, rec_size, P(self)->input_data_cb_data);
             }
         }
     }
-    
     UNLOCK(self);
+    
+    if(discon_cb) {
+        discon_cb(FALSE, self);
+    }
 }
 
 static void
@@ -464,20 +490,22 @@ gvb_server_input_data_dummy_cb(gchar *data, gsize size, gpointer user_data)
     missed_bytes += size;
     missed_calls++;
     //
-    GvbServer *self = GVB_SERVER(user_data);
-    guint32 snd_rtt=0, rcv_rtt=0;
-    GError *error = NULL;
-    if(!gvb_server_get_rtt(self, &snd_rtt, &rcv_rtt, &error)) {
-        gvb_log_error(&error);
-        return;
-    }
-    if(missed_bytes%2000==0 || missed_calls%15==0) {
-        gvb_log_message("missed [%d] bytes, \t[rcv:%d] - [snd:%d]", missed_bytes, rcv_rtt, snd_rtt);
-    }
+//    gvb_ui_refresh();
+//    GvbServer *self = GVB_SERVER(user_data);
+//    guint32 snd_rtt=0, rcv_rtt=0;
+//    GError *error = NULL;
+//    if(!gvb_server_get_rtt(self, &snd_rtt, &rcv_rtt, &error)) {
+//        gvb_log_error(&error);
+//        return;
+//    }
+//    if(missed_bytes%2000==0 || missed_calls%15==0) {
+//        gvb_log_message("missed [%d] bytes, \t[rcv:%d] - [snd:%d]", missed_bytes, rcv_rtt, snd_rtt);
+//    }
 }
 
 gboolean
-gvb_server_set_input_data_cb(GvbServer *self, GvbInputDataCb callback, GError **error)
+gvb_server_set_input_data_cb(GvbServer *self, GvbInputDataCb callback
+    , gpointer user_data, GError **error)
 {
     if(!self) {
         g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "self is null");
@@ -490,6 +518,29 @@ gvb_server_set_input_data_cb(GvbServer *self, GvbInputDataCb callback, GError **
     gvb_log_message("gvb_server_set_input_data_cb: [%p]", callback);
     LOCK(self);
     P(self)->input_data_cb = callback;
+    P(self)->input_data_cb_data = user_data;
+    UNLOCK(self);
+    return TRUE;
+}
+
+gboolean
+gvb_server_set_client_connect_cb(
+        GvbServer *self, GvbClientConnectCb callback
+      , gpointer user_data, GError **error
+      )
+{
+    if(!self) {
+        g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "self is null");
+        return FALSE;
+    }
+    if(!callback) {
+        g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "callback is null");
+        return FALSE;
+    }
+    //gvb_log_message("gvb_server_set_client_connect_cb: [%p]", callback);
+    LOCK(self);
+    P(self)->client_connect_cb = callback;
+    P(self)->client_connect_data = user_data;
     UNLOCK(self);
     return TRUE;
 }
@@ -510,21 +561,52 @@ gvb_server_set_input_data_pend_get_old(GvbServer *self, gboolean value)
 }
 
 gboolean
-gvb_server_get_rtt(GvbServer *self, guint32 *snd_rtt, guint32 *rcv_rtt, GError **error)
+gvb_server_get_client_connection(
+        GvbServer *self, GSocketConnection **connection, GError **error)
 {
     if(!self) {
         g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "null pointer: self=[%p]", self);
         return FALSE;
     }
+    if(!connection || *connection) {
+        g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "bad pointer: [%p]", connection);
+        return FALSE;
+    }
     LOCK(self);
-    gvb_network_socket_get_info(
+    if(P(self)->sconn) {
+        *connection = g_object_ref(P(self)->sconn);
+    }
+    UNLOCK(self);
+    return TRUE;
+}
+
+gboolean
+gvb_server_get_rtt(GvbServer *self
+    , guint32 *snd_rtt, guint32 *rcv_rtt
+    , guint32 *snd_mss, guint32 *rcv_mss
+    , GError **error)
+{
+    if(!self) {
+        g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "null pointer: self=[%p]", self);
+        return FALSE;
+    }
+    
+    LOCK(self);
+    if(!P(self)->sconn) {
+        UNLOCK(self);
+        g_set_error(error, GVB_ERROR, GVB_ERROR_ILLEGAL_STATE, "no client connection");
+        return FALSE;
+    }
+    if(!gvb_network_socket_get_info(
             g_socket_connection_get_socket(P(self)->sconn)
           , snd_rtt
           , rcv_rtt
-          , error );
-    UNLOCK(self);
-    if(*error) {
+          , snd_mss
+          , rcv_mss
+          , error )) {
+        UNLOCK(self);
         return FALSE;
     }
+    UNLOCK(self);
     return TRUE;
 }

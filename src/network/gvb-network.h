@@ -35,7 +35,10 @@ gchar*
 gvb_network_socket_connection_to_str(GSocketConnection *connection);
 
 gboolean
-gvb_network_socket_get_info(GSocket *socket, guint32 *snd_rtt, guint32 *rcv_rtt, GError **error);
+gvb_network_socket_get_info(GSocket *socket
+    , guint32 *snd_rtt, guint32 *rcv_rtt
+    , guint32 *snd_mss, guint32 *rcv_mss
+    , GError **error );
 
 #endif /* GVB_NETWORK_H */
 

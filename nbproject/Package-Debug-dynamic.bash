@@ -6,7 +6,7 @@
 
 # Macros
 TOP=`pwd`
-CND_PLATFORM=None-Linux
+CND_PLATFORM=GNU-Linux
 CND_CONF=Debug-dynamic
 CND_DISTDIR=dist
 CND_BUILDDIR=build

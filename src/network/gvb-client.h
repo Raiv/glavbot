@@ -17,6 +17,8 @@
 #define GVB_IS_CLIENT_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GVB_TYPE_CLIENT))
 #define GVB_CLIENT_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GVB_TYPE_CLIENT, GvbClientClass))
 
+GType gvb_client_get_type(void);
+
 /**
  * TYPEDEFs
  ******************************************************************************/
@@ -29,7 +31,8 @@ typedef struct _GvbClientPrivate GvbClientPrivate;
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GvbClient, g_object_unref)
         
 GvbClient*
-gvb_client_new(GvbNetworkOptions *nwkopts, GvbClientOptions *options, GMainContext *context, GError **error);
+gvb_client_new(GvbNetworkOptions *nwkopts, GvbClientOptions *options
+        , GMainContext *context, GError **error);
 
 gboolean
 gvb_client_connect(GvbClient *self, GCancellable *cancellable, GError **error);
@@ -41,7 +44,9 @@ gboolean
 gvb_client_get_input_stream(GvbClient *self, GInputStream **istream, GError **error);
 
 gboolean
-gvb_client_get_rtt(GvbClient *self, guint32 *snd_rtt, guint32 *rcv_rtt, GError **error);
+gvb_client_get_rtt(GvbClient *self
+    , guint32 *snd_rtt, guint32 *rcv_rtt
+    , guint32 *snd_mss, guint32 *rcv_mss
+    , GError **error);
 
 #endif /* GVB_CLIENT_H */
-

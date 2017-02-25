@@ -71,7 +71,11 @@ gvb_network_socket_connection_to_str(GSocketConnection *connection)
 }
 
 gboolean
-gvb_network_socket_get_info(GSocket *socket, guint32 *snd_rtt, guint32 *rcv_rtt, GError **error)
+gvb_network_socket_get_info(GSocket *socket
+    , guint32 *snd_rtt, guint32 *rcv_rtt
+    , guint32 *snd_mss, guint32 *rcv_mss
+    , GError **error
+)
 {
     if(!socket) {
         g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "null pointer: socket=[%p]", socket);
@@ -88,11 +92,14 @@ gvb_network_socket_get_info(GSocket *socket, guint32 *snd_rtt, guint32 *rcv_rtt,
         g_set_error(error, GVB_ERROR, GVB_ERROR_OTHER, "getsockopt error: [%s]", strerror(errno));
         return FALSE;
     }
+    if(snd_rtt)
+        *snd_rtt = socket_info.tcpi_rtt;
+    if(rcv_rtt)
+        *rcv_rtt = socket_info.tcpi_rcv_rtt;
+    if(snd_mss)
+        *snd_mss = socket_info.tcpi_snd_mss;
+    if(rcv_mss)
+        *rcv_mss = socket_info.tcpi_rcv_mss;
     
-#define JIFFIES_TO_MSECS(a)  1000*(a)/HZ
-    //FIXME: пока есть сомнения по поводу того, что эти поля означают.
-    //  надо более тщательно изучить код в tcp.c и tcp_input.c
-    *snd_rtt = JIFFIES_TO_MSECS(socket_info.tcpi_rtt);
-    *rcv_rtt = JIFFIES_TO_MSECS(socket_info.tcpi_rcv_rtt);
     return TRUE;
 }

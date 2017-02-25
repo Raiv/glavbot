@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 #include "gvb-network-opt.h"
 #include <glib.h>
 #include <glib-object.h>
@@ -24,6 +18,8 @@ static const GOptionEntry gvb_network_entries[] = {
     { "addr", 'a', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (gpointer)gvb_network_opt_cb, "gvb network address", NULL }
   , { "port", 'p', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (gpointer)gvb_network_opt_cb, "gvb network port", NULL }
   , { "mode", 'm', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (gpointer)gvb_network_opt_cb, "gvb network mode(\"server\" or \"client\")", NULL }
+  , { "rtt_from", 'r', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (gpointer)gvb_network_opt_cb, "gvb network rtt target low", NULL }
+  , { "rtt_to", 't', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (gpointer)gvb_network_opt_cb, "gvb network rtt target high", NULL }
   , { NULL }
 };
 
@@ -47,12 +43,9 @@ gvb_network_opt_cb(const gchar *name, const gchar *value, gpointer data, GError 
     }
     else if(g_strcmp0(clean_name, "port")==0) {
         RAISE_IF_DUP(options->port, 0);
-        gchar *endptr = NULL;
-        options->port = (guint16)g_ascii_strtoull(value, &endptr, 10);
-        if(errno<0 || endptr==value) {
-            g_set_error(error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE
-                    , "string conversion fails [%s] %s"
-                    , value, strerror(errno));
+        guint32 value_num;
+        if(gvb_opt_str_to_num(value, &value_num, error)) {
+            options->port = value_num;
         }
     }
     else if(g_strcmp0(clean_name, "mode")==0) {
@@ -66,6 +59,20 @@ gvb_network_opt_cb(const gchar *name, const gchar *value, gpointer data, GError 
         }
         else {
             options->mode = network_mode->value;
+        }
+    }
+    else if(g_strcmp0(clean_name, "rtt_from")==0) {
+        RAISE_IF_DUP(options->rtt_from, 0);
+        guint32 value_num;
+        if(gvb_opt_str_to_num(value, &value_num, error)) {
+            options->rtt_from = value_num;
+        }
+    }
+    else if(g_strcmp0(clean_name, "rtt_to")==0) {
+        RAISE_IF_DUP(options->rtt_to, 0);
+        guint32 value_num;
+        if(gvb_opt_str_to_num(value, &value_num, error)) {
+            options->rtt_to = value_num;
         }
     }
     else {

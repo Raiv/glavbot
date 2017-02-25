@@ -7,19 +7,19 @@
 #include "gvb-server-opt.h"
 #include <glib.h>
 
-static gboolean 
-gvb_server_opt_cb(const gchar *name, const gchar *value, gpointer data, GError **error);
+//static gboolean 
+//gvb_server_opt_cb(const gchar *name, const gchar *value, gpointer data, GError **error);
 
 static const GOptionEntry gvb_server_entries[] = {
     { NULL }
 };
 
-static gboolean 
-gvb_server_opt_cb(const gchar *name, const gchar *value, gpointer data, GError **error)
-{
-    GvbServerOptions *options = (GvbServerOptions*)data;
-    return (*error==NULL);
-}
+//static gboolean 
+//gvb_server_opt_cb(const gchar *name, const gchar *value, gpointer data, GError **error)
+//{
+//    GvbServerOptions *options = (GvbServerOptions*)data;
+//    return (*error==NULL);
+//}
 
 GOptionGroup*
 gvb_server_opt_get_group(GvbServerOptions *options)

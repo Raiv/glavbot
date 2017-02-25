@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 #include <string.h>
 
 #include "gvb-camera-opt.h"
@@ -19,6 +13,7 @@ static const GOptionEntry gvb_camera_entries[] = {
   , { "out-path", 'o', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (gpointer)gvb_camera_opt_cb, "out file path", NULL }
   , { "width", 'w', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (gpointer)gvb_camera_opt_cb, "capture width", NULL }
   , { "height", 'g', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (gpointer)gvb_camera_opt_cb, "capture height", NULL }
+  , { "fps", 'f', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (gpointer)gvb_camera_opt_cb, "capture frames per second", NULL }
   , { NULL }
 };
 
@@ -46,12 +41,24 @@ gvb_camera_opt_cb(const gchar *name, const gchar *value, gpointer data, GError *
     }
     else if(g_strcmp0(clean_name, "width")==0) {
         RAISE_IF_DUP(options->width, 0);
-        gvb_log_message("width = [%d]", options->width);
-        options->width = g_ascii_strtoull(value, NULL, 10);
+        guint32 value_num;
+        if(gvb_opt_str_to_num(value, &value_num, error)) {
+            options->width = value_num;
+        }
     }
     else if(g_strcmp0(clean_name, "height")==0) {
         RAISE_IF_DUP(options->height, 0);
-        options->height = g_ascii_strtoull(value, NULL, 10);
+        guint32 value_num;
+        if(gvb_opt_str_to_num(value, &value_num, error)) {
+            options->height = value_num;
+        }
+    }
+    else if(g_strcmp0(clean_name, "fps")==0) {
+        RAISE_IF_DUP(options->fps, 0);
+        guint32 value_num;
+        if(gvb_opt_str_to_num(value, &value_num, error)) {
+            options->fps = value_num;
+        }
     }
     else {
         g_set_error(error, GVB_ERROR, GVB_ERROR_OTHER, "bug - unhandled option [%s:%d][%s:%s]", __FILE__, __LINE__, name, clean_name);

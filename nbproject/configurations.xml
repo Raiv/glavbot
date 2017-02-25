@@ -21,6 +21,21 @@
         <itemPath>src/network/gvb-server-opt.h</itemPath>
         <itemPath>C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-server.h</itemPath>
       </logicalFolder>
+      <logicalFolder name="parser" displayName="parser" projectFiles="true">
+        <logicalFolder name="h264" displayName="h264" projectFiles="true">
+          <logicalFolder name="gst" displayName="gst" projectFiles="true">
+            <itemPath>src/parser/h264/gst/_gstconfig.h</itemPath>
+            <itemPath>src/parser/h264/gst/gstbitreader.h</itemPath>
+            <itemPath>src/parser/h264/gst/gstbytereader.h</itemPath>
+            <itemPath>src/parser/h264/gst/gsth264parser.h</itemPath>
+            <itemPath>src/parser/h264/gst/gstutils.h</itemPath>
+            <itemPath>src/parser/h264/gst/nalutils.h</itemPath>
+          </logicalFolder>
+        </logicalFolder>
+      </logicalFolder>
+      <logicalFolder name="tests" displayName="tests" projectFiles="true">
+        <itemPath>src/tests/gvb-tests.h</itemPath>
+      </logicalFolder>
       <logicalFolder name="ui" displayName="ui" projectFiles="true">
         <itemPath>C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/ui/gvb-ui.h</itemPath>
       </logicalFolder>
@@ -51,6 +66,22 @@
         <itemPath>src/network/gvb-server-opt.c</itemPath>
         <itemPath>src/network/gvb-server.c</itemPath>
       </logicalFolder>
+      <logicalFolder name="parser" displayName="parser" projectFiles="true">
+        <logicalFolder name="h264" displayName="h264" projectFiles="true">
+          <logicalFolder name="gst" displayName="gst" projectFiles="true">
+            <itemPath>src/parser/h264/gst/gstbitreader.c</itemPath>
+            <itemPath>src/parser/h264/gst/gstbytereader.c</itemPath>
+            <itemPath>src/parser/h264/gst/gsth264parser.c</itemPath>
+            <itemPath>src/parser/h264/gst/gstutils.c</itemPath>
+            <itemPath>src/parser/h264/gst/nalutils.c</itemPath>
+          </logicalFolder>
+        </logicalFolder>
+      </logicalFolder>
+      <logicalFolder name="tests" displayName="tests" projectFiles="true">
+        <itemPath>src/tests/gvb-client2server.c</itemPath>
+        <itemPath>src/tests/gvb-misc.c</itemPath>
+        <itemPath>src/tests/gvb-server2client.c</itemPath>
+      </logicalFolder>
       <logicalFolder name="ui" displayName="ui" projectFiles="true">
         <itemPath>src/ui/gvb-ui.c</itemPath>
       </logicalFolder>
@@ -74,6 +105,8 @@
     <Elem>src/network</Elem>
     <Elem>src/ui</Elem>
     <Elem>src/compat</Elem>
+    <Elem>src/tests</Elem>
+    <Elem>src/parser</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -88,6 +121,7 @@
           <incDir>
             <pElem>3rdparty/glib-2.0/2.48.1/include</pElem>
           </incDir>
+          <warningLevel>2</warningLevel>
         </cTool>
         <linkerTool>
           <linkerAddLib>
@@ -174,6 +208,48 @@
       <item path="src/network/gvb-server-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-server.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/_gstconfig.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbitreader.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbitreader.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbytereader.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbytereader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gsth264parser.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gsth264parser.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstutils.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstutils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/nalutils.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/nalutils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-client2server.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-misc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-server2client.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-tests.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/ui/gvb-ui.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -267,10 +343,52 @@
       </item>
       <item path="src/network/gvb-server.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="src/parser/h264/gst/_gstconfig.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbitreader.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbitreader.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbytereader.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbytereader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gsth264parser.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gsth264parser.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstutils.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstutils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/nalutils.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/nalutils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-client2server.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-misc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-server2client.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-tests.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="src/ui/gvb-ui.c" ex="false" tool="0" flavor2="0">
       </item>
     </conf>
-    <conf name="Debug-static" type="1">
+    <conf name="Debug-static-armv71" type="1">
       <toolsSet>
         <compilerSet>GNU|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
@@ -278,17 +396,21 @@
       </toolsSet>
       <compileType>
         <cTool>
+          <commandlineTool>gcc</commandlineTool>
           <incDir>
-            <pElem>3rdparty/glib-2.0/2.48.1/include</pElem>
+            <pElem>3rdparty/glib-2.0/2.48.1/armv71/include</pElem>
             <pElem>src/common</pElem>
             <pElem>src/camera</pElem>
             <pElem>src/network</pElem>
             <pElem>src/ui</pElem>
+            <pElem>src/tests</pElem>
+            <pElem>src/parser</pElem>
           </incDir>
+          <warningLevel>2</warningLevel>
         </cTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>3rdparty/glib-2.0/2.48.1/libs</pElem>
+            <pElem>3rdparty/glib-2.0/2.48.1/armv71/libs</pElem>
           </linkerAddLib>
           <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
@@ -296,6 +418,7 @@
             <linkerOptionItem>-lresolv</linkerOptionItem>
             <linkerOptionItem>-lz</linkerOptionItem>
             <linkerOptionItem>-lrt</linkerOptionItem>
+            <linkerOptionItem>-lm</linkerOptionItem>
             <linkerOptionItem>-Wl,-Bstatic</linkerOptionItem>
             <linkerOptionItem>-lgio-2.0</linkerOptionItem>
             <linkerOptionItem>-lgmodule-2.0</linkerOptionItem>
@@ -378,7 +501,202 @@
       </item>
       <item path="src/network/gvb-server.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="src/parser/h264/gst/_gstconfig.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbitreader.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbitreader.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbytereader.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbytereader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gsth264parser.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gsth264parser.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstutils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/nalutils.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/nalutils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-client2server.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-misc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-server2client.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-tests.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="src/ui/gvb-ui.c" ex="false" tool="0" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Debug-static-x86_64" type="1">
+      <toolsSet>
+        <compilerSet>GNU|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>true</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>3rdparty/glib-2.0/2.48.1/x86_64/include</pElem>
+            <pElem>src/common</pElem>
+            <pElem>src/camera</pElem>
+            <pElem>src/network</pElem>
+            <pElem>src/ui</pElem>
+            <pElem>src/tests</pElem>
+          </incDir>
+        </cTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>3rdparty/glib-2.0/2.48.1/x86_64/libs</pElem>
+          </linkerAddLib>
+          <commandlineTool>gcc</commandlineTool>
+          <linkerLibItems>
+            <linkerOptionItem>-ldl</linkerOptionItem>
+            <linkerOptionItem>-lresolv</linkerOptionItem>
+            <linkerOptionItem>-lz</linkerOptionItem>
+            <linkerOptionItem>-lrt</linkerOptionItem>
+            <linkerOptionItem>-lm</linkerOptionItem>
+            <linkerOptionItem>-Wl,-Bstatic</linkerOptionItem>
+            <linkerOptionItem>-lgio-2.0</linkerOptionItem>
+            <linkerOptionItem>-lgmodule-2.0</linkerOptionItem>
+            <linkerOptionItem>-lgobject-2.0</linkerOptionItem>
+            <linkerOptionItem>-lglib-2.0</linkerOptionItem>
+            <linkerOptionItem>-Wl,-Bdynamic</linkerOptionItem>
+            <linkerOptionItem>`pkg-config --libs ncurses`</linkerOptionItem>
+            <linkerOptionItem>`pkg-config --libs libffi`</linkerOptionItem>
+            <linkerOptionItem>`pkg-config --libs libpcre`</linkerOptionItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera-opt.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/camera/gvb-camera.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-error.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/common/gvb-log.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-client.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/network/gvb-server.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="C:/Users/Miha/Documents/NetBeansProjects/glavbot/src/ui/gvb-ui.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/camera/gvb-camera-opt.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/camera/gvb-camera.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/camera/gvb-opt.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/camera/gvb-opt.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/common/gvb-error.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/compat/compat.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/main.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/network/gvb-client-opt.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/network/gvb-client-opt.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/network/gvb-client.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/network/gvb-network-opt.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/network/gvb-network-opt.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/network/gvb-network.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/network/gvb-network.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/network/gvb-server-opt.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/network/gvb-server-opt.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/network/gvb-server.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/parser/h264/gst/_gstconfig.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbitreader.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbitreader.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbytereader.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbytereader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gsth264parser.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gsth264parser.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstutils.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstutils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/nalutils.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/nalutils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-client2server.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/tests/gvb-misc.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/tests/gvb-server2client.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/tests/gvb-tests.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/ui/gvb-ui.c" ex="false" tool="0" flavor2="9">
       </item>
     </conf>
     <conf name="Debug-dynamic" type="1">
@@ -473,6 +791,48 @@
       <item path="src/network/gvb-server-opt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/network/gvb-server.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/_gstconfig.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbitreader.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbitreader.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbytereader.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstbytereader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gsth264parser.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gsth264parser.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstutils.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/gstutils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/nalutils.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parser/h264/gst/nalutils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-client2server.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-misc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-server2client.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/tests/gvb-tests.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/ui/gvb-ui.c" ex="false" tool="0" flavor2="0">
       </item>
