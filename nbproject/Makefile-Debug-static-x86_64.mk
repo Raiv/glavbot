@@ -76,11 +76,11 @@ LDLIBSOPTIONS=-L3rdparty/glib-2.0/2.48.1/x86_64/libs -ldl -lresolv -lz -lrt -lm 
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/glavbot
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/glavbot_github
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/glavbot: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/glavbot_github: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	gcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/glavbot ${OBJECTFILES} ${LDLIBSOPTIONS}
+	gcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/glavbot_github ${OBJECTFILES} ${LDLIBSOPTIONS}
 
 ${OBJECTDIR}/src/camera/gvb-camera-opt.o: src/camera/gvb-camera-opt.c nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/src/camera

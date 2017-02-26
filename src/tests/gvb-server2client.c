@@ -329,8 +329,8 @@ client_connect_cb(gboolean connected, gpointer user_data)
     
     if(connected) {
         g_autoptr(GvbCamera) camera = gvb_camera_new(&_cam_opts);
-        if(!gvb_camera_set_buffer_callback(camera, camera_cb, g_object_ref(server), camera_destroy_cb)) {
-            gvb_log_critical("gvb_camera_set_buffer_callback fails");
+        if(!gvb_camera_set_buffer_callback(camera, camera_cb, g_object_ref(server), camera_destroy_cb, &error)) {
+            gvb_log_error(&error);
             return;
         }
         if(!gvb_camera_open(camera, &error)){

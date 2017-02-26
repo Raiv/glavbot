@@ -274,7 +274,7 @@ validate_set_and_get_args(GvbCamera *self, GError **error, gpointer value)
         g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "arg is null: [%p,%p]", self, value);
         return FALSE;
     }
-    if(!gvb_camera_isopen(self)) {
+    if(!gvb_camera_isopen(self, error)) {
         g_set_error(error, GVB_CAMERA_ERROR, GVB_CAMERA_ERROR_CLOSED, "camera closed");
         return FALSE;
     }
@@ -426,7 +426,7 @@ gvb_camera_query_control(
         g_set_error(error, GVB_ERROR, GVB_ERROR_INVALID_ARG, "camera is null");
         return FALSE;
     }
-    if(!gvb_camera_isopen(self)) {
+    if(!gvb_camera_isopen(self, error)) {
         g_set_error(error, GVB_CAMERA_ERROR, GVB_CAMERA_ERROR_CLOSED, "camera closed");
         return FALSE;
     }
@@ -760,7 +760,7 @@ gvb_camera_start_capturing(GvbCamera *self, GError **error)
         UNLOCK(self);
         return TRUE;
     }
-    if(!gvb_camera_isopen(self) && !gvb_camera_open(self, error)) {
+    if(!gvb_camera_isopen(self, error) && !gvb_camera_open(self, error)) {
         goto fail0;
     }
     // open output file

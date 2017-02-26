@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=glavbot
+PROJECTNAME=glavbot_github
 
 # Active Configuration
 DEFAULTCONF=Debug

@@ -317,18 +317,20 @@ gvb_ui_set_server(GvbServer *server, GError **error)
 static void
 gvb_ui_camera_controls_refresh()
 {
+    GError *error = NULL;
+    
     if(!DATA(camera)) {
         return;
     }
     
     DATA_LOCK();
     
-    if(!gvb_camera_isopen(DATA(camera))) {
+    if(!gvb_camera_isopen(DATA(camera), &error)) {
         DATA_UNLOCK();
+        gvb_log_error(&error);
         return;
     }
-    
-    GError *error = NULL;
+
     if(!gvb_camera_get_control(DATA(camera), &error, GVB_CAMERA_CONTROL_FRAME_RATE, &DATA(frame_rate))) {
         gvb_log_error(&error);
     }
