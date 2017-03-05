@@ -24,7 +24,7 @@
 
 static GvbNetworkOptions _nwk_opts = {0};
 static GvbCameraOptions  _cam_opts = {0};
-static GvbClientOptions  _cli_opts = {};
+static GvbClientOptions  _cli_opts = {.log_parser=FALSE, .log_timing=FALSE};
 static GstH264NalParser *_parser   = NULL;
 static GBytes           *_nalu_buf = NULL;
 static GstH264NalUnit    _nalu;
@@ -326,19 +326,21 @@ camera_cb(gpointer user_data, gpointer start, guint32 bytes, guint32 flags)
     g_clear_pointer(&_nalu_buf, g_bytes_unref);
     last_tx = g_get_monotonic_time();
     
-    gvb_log_message("nalu sent   , offset=%-10d, size=%-10d, ref_idc=%-2d, type=%-25s(%-2d)"
-          ", idr_pic_flag=%d, valid=%d, header_bytes=%-2d"
-          ", extension_type=%-2d"
-      , _nalu.offset
-      , _nalu.size
-      , _nalu.ref_idc
-      , get_nal_type_desc(_nalu.type) // GstH264NalUnitType
-      , _nalu.type
-      , _nalu.idr_pic_flag
-      , _nalu.valid
-      , _nalu.header_bytes
-      , _nalu.extension_type
-    );
+    if(_cli_opts.log_parser) {
+        gvb_log_message("nalu sent   , offset=%-10d, size=%-10d, ref_idc=%-2d, type=%-25s(%-2d)"
+              ", idr_pic_flag=%d, valid=%d, header_bytes=%-2d"
+              ", extension_type=%-2d"
+          , _nalu.offset
+          , _nalu.size
+          , _nalu.ref_idc
+          , get_nal_type_desc(_nalu.type) // GstH264NalUnitType
+          , _nalu.type
+          , _nalu.idr_pic_flag
+          , _nalu.valid
+          , _nalu.header_bytes
+          , _nalu.extension_type
+        );
+    }
 }
 
 static void 
@@ -658,17 +660,16 @@ timeout_cb(gpointer user_data)
     else {
         indicator = "==";
     }
-    if(indicator) {
-//        gvb_log_message("%s", indicator);
-//        gvb_log_message("%s: "
-//                "bitrate=[%10d] fps=[%3d] exp_time=[%3d] iframe=[%2d] "
-//                "s_rtt=[%7d] s_mss=[%4d] r_rtt=[%7d] r_mss=[%4d] "
-//                "tx_Bps=[%12.3f] camera_Bps=[%12.3f]"
-//              , indicator
-//              , BTR_CTL.value, FPS_CTL.value, EXP_CTL.value, IFR_CTL.value
-//              , snd_rtt, snd_mss, rcv_rtt, rcv_mss
-//              , tx_bytes_per_sec, camera_bytes_per_sec
-//              );
+    if(indicator && _cli_opts.log_timing) {
+        gvb_log_message("%s: "
+                "bitrate=[%10d] fps=[%3d] exp_time=[%3d] iframe=[%2d] "
+                "s_rtt=[%7d] s_mss=[%4d] r_rtt=[%7d] r_mss=[%4d] "
+                "tx_Bps=[%12.3f] camera_Bps=[%12.3f]"
+              , indicator
+              , BTR_CTL.value, FPS_CTL.value, EXP_CTL.value, IFR_CTL.value
+              , snd_rtt, snd_mss, rcv_rtt, rcv_mss
+              , tx_bytes_per_sec, camera_bytes_per_sec
+              );
     }
     return TRUE;
 }
@@ -701,6 +702,9 @@ run_client(int argc, char** argv)
         gvb_log_error(&error);
         return EXIT_FAILURE;
     }
+    
+    gvb_log_message("Log_parser: %d", _cli_opts.log_parser);
+    gvb_log_message("Log_timing: %d", _cli_opts.log_timing);
     
     g_autoptr(GMainContext) main_ctx = NULL;
     g_autoptr(GCancellable) cancellable = g_cancellable_new();

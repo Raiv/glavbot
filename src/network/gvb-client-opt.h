@@ -17,7 +17,8 @@
 #include <glib.h>
 
 typedef struct GvbClientOptions {
-
+    gboolean log_timing;
+    gboolean log_parser;
 } GvbClientOptions;
 
 GOptionGroup*
