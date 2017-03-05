@@ -720,8 +720,8 @@ run_client(int argc, char** argv)
     
     // create camera object
     _camera = gvb_camera_new(&_cam_opts);
-    if(!gvb_camera_set_buffer_callback(_camera, camera_cb, g_object_ref(_client), camera_destroy_cb)) {
-        gvb_log_critical("gvb_camera_set_buffer_callback fails");
+    if(!gvb_camera_set_buffer_callback(_camera, camera_cb, g_object_ref(_client), camera_destroy_cb, &error)) {
+        gvb_log_error(&error);
         return EXIT_FAILURE;
     }
     

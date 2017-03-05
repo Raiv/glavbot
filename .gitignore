@@ -1,3 +1,5 @@
 nbproject/private
 .DS_Store
 dist
+build
+.dep.inc

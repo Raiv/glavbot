@@ -25,16 +25,16 @@ CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux/package/glavbotgithub.tar
 # Debug-static-armv71 configuration
 CND_PLATFORM_Debug-static-armv71=GNU-Linux
 CND_ARTIFACT_DIR_Debug-static-armv71=dist/Debug-static-armv71/GNU-Linux
-CND_ARTIFACT_NAME_Debug-static-armv71=glavbot_github
-CND_ARTIFACT_PATH_Debug-static-armv71=dist/Debug-static-armv71/GNU-Linux/glavbot_github
+CND_ARTIFACT_NAME_Debug-static-armv71=glavbot
+CND_ARTIFACT_PATH_Debug-static-armv71=dist/Debug-static-armv71/GNU-Linux/glavbot
 CND_PACKAGE_DIR_Debug-static-armv71=dist/Debug-static-armv71/GNU-Linux/package
 CND_PACKAGE_NAME_Debug-static-armv71=glavbotgithub.tar
 CND_PACKAGE_PATH_Debug-static-armv71=dist/Debug-static-armv71/GNU-Linux/package/glavbotgithub.tar
 # Debug-static-x86_64 configuration
 CND_PLATFORM_Debug-static-x86_64=GNU-Linux
 CND_ARTIFACT_DIR_Debug-static-x86_64=dist/Debug-static-x86_64/GNU-Linux
-CND_ARTIFACT_NAME_Debug-static-x86_64=glavbot_github
-CND_ARTIFACT_PATH_Debug-static-x86_64=dist/Debug-static-x86_64/GNU-Linux/glavbot_github
+CND_ARTIFACT_NAME_Debug-static-x86_64=glavbot
+CND_ARTIFACT_PATH_Debug-static-x86_64=dist/Debug-static-x86_64/GNU-Linux/glavbot
 CND_PACKAGE_DIR_Debug-static-x86_64=dist/Debug-static-x86_64/GNU-Linux/package
 CND_PACKAGE_NAME_Debug-static-x86_64=glavbotgithub.tar
 CND_PACKAGE_PATH_Debug-static-x86_64=dist/Debug-static-x86_64/GNU-Linux/package/glavbotgithub.tar

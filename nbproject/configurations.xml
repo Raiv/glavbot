@@ -372,6 +372,7 @@
           <warningLevel>2</warningLevel>
         </cTool>
         <linkerTool>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/glavbot</output>
           <linkerAddLib>
             <pElem>3rdparty/glib-2.0/2.48.1/armv71/libs</pElem>
           </linkerAddLib>
@@ -504,9 +505,12 @@
             <pElem>src/network</pElem>
             <pElem>src/ui</pElem>
             <pElem>src/tests</pElem>
+            <pElem>src/parser</pElem>
+            <pElem>src/parser/h264/gst</pElem>
           </incDir>
         </cTool>
         <linkerTool>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/glavbot</output>
           <linkerAddLib>
             <pElem>3rdparty/glib-2.0/2.48.1/x86_64/libs</pElem>
           </linkerAddLib>
@@ -523,11 +527,15 @@
             <linkerOptionItem>-lgobject-2.0</linkerOptionItem>
             <linkerOptionItem>-lglib-2.0</linkerOptionItem>
             <linkerOptionItem>-Wl,-Bdynamic</linkerOptionItem>
+            <linkerOptionItem>-ldl</linkerOptionItem>
+            <linkerOptionItem>-lresolv</linkerOptionItem>
+            <linkerOptionItem>-lz</linkerOptionItem>
             <linkerOptionItem>`pkg-config --libs ncurses`</linkerOptionItem>
             <linkerOptionItem>`pkg-config --libs libffi`</linkerOptionItem>
             <linkerOptionItem>`pkg-config --libs libpcre`</linkerOptionItem>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
           </linkerLibItems>
+          <commandLine>-Wl,-v</commandLine>
         </linkerTool>
       </compileType>
       <item path="src/camera/gvb-camera-opt.c" ex="false" tool="0" flavor2="9">

@@ -6,7 +6,9 @@
 #include <glib/gstdio.h>
 #include <gio/gio.h>
 // system dependencies
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <linux/videodev2.h>
 #include <fcntl.h>
 #include <errno.h>

@@ -78,68 +78,68 @@ get_nal_type_desc(GstH264NalUnitType type)
 
 static GstH264NalUnit nalu;
 
-static int
-test0(int argc, char** argv)
-{
-    if(argc<2) {
-        return EXIT_FAILURE;
-    }
-    
-    GError *error = NULL;
-    gint exit_code = EXIT_SUCCESS;
-    guint offset = 0;
-    
-    GstH264NalParser* parser = gst_h264_nal_parser_new();
-    g_print("sample file: [%s]\n", argv[1]);
-    GMappedFile *mf = g_mapped_file_new(argv[1], FALSE, &error);
-    if(!mf) {
-        exit_code = EXIT_FAILURE;
-        goto clean_exit;
-    }
-    GBytes *body = g_mapped_file_get_bytes(mf);
-    gsize sz = -1;
-    gconstpointer body_data = g_bytes_get_data(body, &sz);
-    g_print("size: %d\n", sz);
-    
-    GstH264ParserResult result;
-    
-    while(offset<sz) {
-        result = gst_h264_parser_identify_nalu(parser, body_data, offset, sz, &nalu);
-        g_print("result: %d ", result);
-        offset = nalu.offset + nalu.size;
-        if(result==GST_H264_PARSER_OK) {
-            g_print("offset=%-10d, size=%-10d, ref_idc=%-2d, type=%-25s(%-2d)"
-                  ", idr_pic_flag=%d, valid=%d, header_bytes=%-2d"
-                  ", extension_type=%-2d"
-              , nalu.offset
-              , nalu.size
-              , nalu.ref_idc
-              , get_nal_type_desc(nalu.type) // GstH264NalUnitType
-              , nalu.type
-              , nalu.idr_pic_flag
-              , nalu.valid
-              , nalu.header_bytes
-              , nalu.extension_type
-            );
-        }
-        else {
-            g_print("offset=%-10d, size=%-10d", nalu.offset, nalu.size);
-        }
-        g_print("\n");
-    }
-    g_print("loop end: %d < %d\n", offset, sz);
-    
-//    result = gst_h264_parser_identify_nalu(parser, body_data, offset, sz, &nalu);
-//    g_print("result: %d\n", result);
-//    g_print("nalu offset: %d\n", nalu.offset);
-//    g_print("nalu size: %d\n", nalu.size);
-    
-clean_exit:
-    gst_h264_nal_parser_free(parser);
-    g_mapped_file_unref(mf);
-    g_bytes_unref(body);
-    return exit_code;
-}
+//static int
+//test0(int argc, char** argv)
+//{
+//    if(argc<2) {
+//        return EXIT_FAILURE;
+//    }
+//    
+//    GError *error = NULL;
+//    gint exit_code = EXIT_SUCCESS;
+//    guint offset = 0;
+//    
+//    GstH264NalParser* parser = gst_h264_nal_parser_new();
+//    g_print("sample file: [%s]\n", argv[1]);
+//    GMappedFile *mf = g_mapped_file_new(argv[1], FALSE, &error);
+//    if(!mf) {
+//        exit_code = EXIT_FAILURE;
+//        goto clean_exit;
+//    }
+//    GBytes *body = g_mapped_file_get_bytes(mf);
+//    gsize sz = -1;
+//    gconstpointer body_data = g_bytes_get_data(body, &sz);
+//    g_print("size: %d\n", sz);
+//    
+//    GstH264ParserResult result;
+//    
+//    while(offset<sz) {
+//        result = gst_h264_parser_identify_nalu(parser, body_data, offset, sz, &nalu);
+//        g_print("result: %d ", result);
+//        offset = nalu.offset + nalu.size;
+//        if(result==GST_H264_PARSER_OK) {
+//            g_print("offset=%-10d, size=%-10d, ref_idc=%-2d, type=%-25s(%-2d)"
+//                  ", idr_pic_flag=%d, valid=%d, header_bytes=%-2d"
+//                  ", extension_type=%-2d"
+//              , nalu.offset
+//              , nalu.size
+//              , nalu.ref_idc
+//              , get_nal_type_desc(nalu.type) // GstH264NalUnitType
+//              , nalu.type
+//              , nalu.idr_pic_flag
+//              , nalu.valid
+//              , nalu.header_bytes
+//              , nalu.extension_type
+//            );
+//        }
+//        else {
+//            g_print("offset=%-10d, size=%-10d", nalu.offset, nalu.size);
+//        }
+//        g_print("\n");
+//    }
+//    g_print("loop end: %d < %d\n", offset, sz);
+//    
+////    result = gst_h264_parser_identify_nalu(parser, body_data, offset, sz, &nalu);
+////    g_print("result: %d\n", result);
+////    g_print("nalu offset: %d\n", nalu.offset);
+////    g_print("nalu size: %d\n", nalu.size);
+//    
+//clean_exit:
+//    gst_h264_nal_parser_free(parser);
+//    g_mapped_file_unref(mf);
+//    g_bytes_unref(body);
+//    return exit_code;
+//}
 
 static int
 test1(int argc, char** argv)
@@ -162,7 +162,7 @@ test1(int argc, char** argv)
     GBytes *body = g_mapped_file_get_bytes(mf);
     gsize sz = -1;
     gconstpointer body_data = g_bytes_get_data(body, &sz);
-    g_print("size: %d\n", sz);
+    g_print("size: %zu\n", sz);
     
     GByteArray *ba = g_byte_array_new();
     GRand *rand = g_rand_new();
@@ -258,4 +258,3 @@ gvb_h264_parser_test(int argc, char** argv)
 {
     return test1(argc, argv);
 }
-

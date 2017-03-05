@@ -258,7 +258,7 @@ int test3(int argc, char** argv)
     GInputStream *base_stream = g_memory_input_stream_new();
     GDataInputStream *data_stream = g_data_input_stream_new(G_INPUT_STREAM(base_stream));
     
-    g_print("data_stream size: %d\n", g_buffered_input_stream_get_available(G_BUFFERED_INPUT_STREAM(data_stream)));
+    g_print("data_stream size: %zu\n", g_buffered_input_stream_get_available(G_BUFFERED_INPUT_STREAM(data_stream)));
     gchar data[10] = {1,2,3,4,5,6,7,8,9,0};
     g_memory_input_stream_add_data(G_MEMORY_INPUT_STREAM(base_stream), data, 10, NULL);
     
